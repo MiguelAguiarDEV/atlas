@@ -1,0 +1,40 @@
+@import "tailwindcss";
+
+:root {
+  --atlas-bg: #0a0a0a;
+  --atlas-fg: #fafafa;
+  --atlas-muted: #71717a;
+  --atlas-border: #27272a;
+  --atlas-accent: #3b82f6;
+  --atlas-accent-hover: #2563eb;
+  --atlas-success: #22c55e;
+  --atlas-warning: #eab308;
+  --atlas-danger: #ef4444;
+  --atlas-surface: #18181b;
+  --atlas-surface-hover: #27272a;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html {
+  font-family: system-ui, -apple-system, sans-serif;
+  background: var(--atlas-bg);
+  color: var(--atlas-fg);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  min-height: 100dvh;
+}
+
+@media (max-width: 768px) {
+  html {
+    font-size: 16px;
+    -webkit-text-size-adjust: 100%;
+  }
+}
