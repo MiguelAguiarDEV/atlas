@@ -7,29 +7,21 @@ interface PriorityBadgeProps {
   className?: string;
 }
 
-const config: Record<Priority, { label: string; color: string; bg: string }> = {
-  0: { label: "P0", color: "text-red-400", bg: "bg-red-400/15" },
-  1: { label: "P1", color: "text-orange-400", bg: "bg-orange-400/15" },
-  2: { label: "P2", color: "text-blue-400", bg: "bg-blue-400/15" },
-  3: { label: "P3", color: "text-zinc-400", bg: "bg-zinc-400/15" },
+const config: Record<Priority, { label: string; dotColor: string; textColor: string; pulse: boolean }> = {
+  0: { label: "P0", dotColor: "bg-red-400", textColor: "text-red-400", pulse: true },
+  1: { label: "P1", dotColor: "bg-orange-400", textColor: "text-orange-400", pulse: false },
+  2: { label: "P2", dotColor: "bg-[var(--accent)]", textColor: "text-[var(--accent)]", pulse: false },
+  3: { label: "P3", dotColor: "bg-[var(--foreground-muted)]", textColor: "text-[var(--foreground-muted)]", pulse: false },
 };
 
 export function PriorityBadge({ priority, className = "" }: PriorityBadgeProps) {
-  const { label, color, bg } = config[priority];
+  const { label, dotColor, textColor, pulse } = config[priority];
   return (
     <span
-      className={`inline-flex items-center gap-1 rounded-md px-1.5 py-0.5 text-xs font-medium ${color} ${bg} ${className}`}
+      className={`inline-flex items-center gap-1.5 text-[11px] font-medium ${textColor} ${className}`}
     >
       <span
-        className={`h-1.5 w-1.5 rounded-full ${
-          priority === 0
-            ? "bg-red-400"
-            : priority === 1
-              ? "bg-orange-400"
-              : priority === 2
-                ? "bg-blue-400"
-                : "bg-zinc-400"
-        }`}
+        className={`h-1.5 w-1.5 rounded-full ${dotColor} ${pulse ? "pulse-dot" : ""}`}
       />
       {label}
     </span>

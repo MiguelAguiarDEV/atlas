@@ -1,53 +1,115 @@
 "use client";
 
+import {
+  InboxIcon,
+  CalendarIcon,
+  BarChartIcon,
+  FolderIcon,
+  RepeatIcon,
+  SettingsIcon,
+  ChevronRightIcon,
+} from "@atlas/ui";
+
 const MENU_ITEMS = [
-  { label: "Inbox", description: "Unprocessed captures", count: 4 },
-  { label: "Weekly Review", description: "Review and plan your week", count: 0 },
-  { label: "Analytics", description: "Time tracking insights", count: 0 },
-  { label: "Projects", description: "Manage your projects", count: 0 },
-  { label: "Habits", description: "Configure habits and routines", count: 0 },
-  { label: "Settings", description: "Preferences and account", count: 0 },
+  {
+    label: "Inbox",
+    description: "Unprocessed captures",
+    icon: InboxIcon,
+    count: 4,
+    iconBg: "rgba(94,106,210,0.12)",
+    iconColor: "var(--accent)",
+  },
+  {
+    label: "Weekly Review",
+    description: "Review and plan your week",
+    icon: CalendarIcon,
+    count: 0,
+    iconBg: "rgba(245,158,11,0.12)",
+    iconColor: "var(--warning)",
+  },
+  {
+    label: "Analytics",
+    description: "Time tracking insights",
+    icon: BarChartIcon,
+    count: 0,
+    iconBg: "rgba(34,197,94,0.12)",
+    iconColor: "var(--success)",
+  },
+  {
+    label: "Projects",
+    description: "Manage your projects",
+    icon: FolderIcon,
+    count: 0,
+    iconBg: "rgba(94,106,210,0.12)",
+    iconColor: "var(--accent)",
+  },
+  {
+    label: "Habits",
+    description: "Configure habits and routines",
+    icon: RepeatIcon,
+    count: 0,
+    iconBg: "rgba(139,92,246,0.12)",
+    iconColor: "#8B5CF6",
+  },
+  {
+    label: "Settings",
+    description: "Preferences and account",
+    icon: SettingsIcon,
+    count: 0,
+    iconBg: "rgba(255,255,255,0.06)",
+    iconColor: "var(--foreground-muted)",
+  },
 ];
 
 export default function MorePage() {
   return (
     <div className="mx-auto max-w-lg px-4 pt-safe">
-      <header className="pb-6 pt-8">
-        <h1 className="text-2xl font-bold tracking-tight">More</h1>
+      <header className="pb-6 pt-8 animate-fade-in-up">
+        <h1 className="text-h1 text-[var(--foreground)]">More</h1>
       </header>
 
-      <div className="flex flex-col gap-1 pb-24">
-        {MENU_ITEMS.map((item) => (
-          <button
-            key={item.label}
-            className="flex items-center gap-4 rounded-xl px-4 py-4 text-left transition-colors active:bg-[var(--atlas-surface-hover)] hover:bg-[var(--atlas-surface)]"
-          >
-            <div className="flex min-w-0 flex-1 flex-col">
-              <span className="text-sm font-medium">{item.label}</span>
-              <span className="text-xs text-[var(--atlas-muted)]">
-                {item.description}
-              </span>
-            </div>
-            {item.count > 0 && (
-              <span className="flex h-6 min-w-6 items-center justify-center rounded-full bg-[var(--atlas-accent)] px-2 text-xs font-medium text-white">
-                {item.count}
-              </span>
-            )}
-            <svg
-              width="16"
-              height="16"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              className="shrink-0 text-[var(--atlas-muted)]"
+      <div className="flex flex-col gap-2 pb-24">
+        {MENU_ITEMS.map((item, i) => {
+          const Icon = item.icon;
+          return (
+            <button
+              key={item.label}
+              className="glass-elevated flex items-center gap-4 px-4 py-4 text-left transition-all duration-200 ease-[cubic-bezier(0.16,1,0.3,1)] active:scale-[0.97] hover:bg-[var(--surface-hover)] animate-fade-in-up min-h-[64px]"
+              style={{ animationDelay: `${50 + i * 40}ms` }}
             >
-              <path d="M9 18l6-6-6-6" />
-            </svg>
-          </button>
-        ))}
+              {/* Icon */}
+              <div
+                className="flex h-10 w-10 shrink-0 items-center justify-center rounded-[var(--radius-sm)]"
+                style={{ background: item.iconBg }}
+              >
+                <Icon size={20} style={{ color: item.iconColor }} />
+              </div>
+
+              {/* Text */}
+              <div className="flex min-w-0 flex-1 flex-col">
+                <span className="text-[13px] font-medium text-[var(--foreground)]">
+                  {item.label}
+                </span>
+                <span className="text-[11px] text-[var(--foreground-muted)]">
+                  {item.description}
+                </span>
+              </div>
+
+              {/* Count badge */}
+              {item.count > 0 && (
+                <span className="flex h-5 min-w-5 items-center justify-center rounded-[var(--radius-full)] bg-[var(--accent)] px-1.5 text-[11px] font-medium text-white shadow-[0_0_8px_var(--accent-glow)]">
+                  {item.count}
+                </span>
+              )}
+
+              {/* Chevron */}
+              <ChevronRightIcon
+                size={16}
+                className="shrink-0 text-[var(--foreground-muted)] opacity-40"
+              />
+            </button>
+          );
+        })}
       </div>
     </div>
   );

@@ -48,60 +48,93 @@ export function TimerDisplay({ taskName, className = "" }: TimerDisplayProps) {
   }, [running]);
 
   const progress = Math.min((seconds % 3600) / 3600, 1);
-  const circumference = 2 * Math.PI * 120;
+  const radius = 110;
+  const svgSize = 264;
+  const center = svgSize / 2;
+  const circumference = 2 * Math.PI * radius;
   const offset = circumference * (1 - progress);
 
   return (
-    <div className={`flex flex-col items-center gap-6 ${className}`}>
+    <div className={`flex flex-col items-center gap-8 ${className}`}>
+      {/* Task name */}
       {taskName && (
-        <p className="text-sm text-[var(--atlas-muted)]">{taskName}</p>
+        <p className="max-w-[280px] truncate text-[13px] text-[var(--foreground-muted)]">
+          {taskName}
+        </p>
       )}
 
+      {/* Timer ring */}
       <div className="relative flex items-center justify-center">
-        <svg width="264" height="264" className="-rotate-90">
+        <svg
+          width={svgSize}
+          height={svgSize}
+          className={`-rotate-90 ${running ? "ring-glow-active" : ""}`}
+        >
+          <defs>
+            <linearGradient id="timer-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stopColor="var(--accent)" stopOpacity="0.3" />
+              <stop offset="100%" stopColor="var(--accent)" stopOpacity="1" />
+            </linearGradient>
+          </defs>
+          {/* Background track */}
           <circle
-            cx="132"
-            cy="132"
-            r="120"
+            cx={center}
+            cy={center}
+            r={radius}
             fill="none"
-            stroke="var(--atlas-border)"
-            strokeWidth="4"
+            stroke="var(--border)"
+            strokeWidth="3"
           />
+          {/* Progress arc */}
           <circle
-            cx="132"
-            cy="132"
-            r="120"
+            cx={center}
+            cy={center}
+            r={radius}
             fill="none"
-            stroke="var(--atlas-accent)"
-            strokeWidth="4"
+            stroke="url(#timer-gradient)"
+            strokeWidth="3"
             strokeLinecap="round"
             strokeDasharray={circumference}
             strokeDashoffset={offset}
             className="transition-[stroke-dashoffset] duration-1000 ease-linear"
           />
         </svg>
-        <span className="absolute font-mono text-5xl font-light tracking-wider">
-          {formatTime(seconds)}
-        </span>
+
+        {/* Time display */}
+        <div className="absolute flex flex-col items-center gap-1">
+          <span
+            className="text-[48px] font-light tracking-[0.04em] tabular-nums text-[var(--foreground)]"
+            style={{ fontFamily: "var(--font-mono)" }}
+          >
+            {formatTime(seconds)}
+          </span>
+          {running && (
+            <span className="flex items-center gap-1.5 text-[11px] text-[var(--accent)]">
+              <span className="h-1.5 w-1.5 rounded-full bg-[var(--accent)] pulsing-dot" />
+              Focusing
+            </span>
+          )}
+        </div>
       </div>
 
+      {/* Controls */}
       <div className="flex items-center gap-4">
         <button
           onClick={running ? stop : start}
-          className={`flex h-16 w-16 items-center justify-center rounded-full transition-all duration-200 active:scale-[0.95] ${
+          className={`flex h-16 w-16 items-center justify-center rounded-full transition-all duration-200 ease-[cubic-bezier(0.16,1,0.3,1)] active:scale-[0.93] ${
             running
-              ? "bg-red-500/20 text-red-400"
-              : "bg-[var(--atlas-accent)]/20 text-[var(--atlas-accent)]"
+              ? "bg-[var(--danger)]/15 text-[var(--danger)] shadow-[0_0_20px_var(--danger-glow)]"
+              : "bg-[var(--accent)]/15 text-[var(--accent)] shadow-[0_0_20px_var(--accent-glow)]"
           }`}
           aria-label={running ? "Stop timer" : "Start timer"}
         >
-          {running ? <StopIcon size={28} /> : <PlayIcon size={28} />}
+          {running ? <StopIcon size={26} /> : <PlayIcon size={26} />}
         </button>
 
         {seconds > 0 && !running && (
           <button
             onClick={reset}
-            className="rounded-lg px-4 py-2 text-sm text-[var(--atlas-muted)] transition-colors hover:text-[var(--atlas-fg)]"
+            className="rounded-[var(--radius-sm)] px-4 py-2.5 text-[13px] font-medium text-[var(--foreground-muted)] transition-all duration-200 ease-[cubic-bezier(0.16,1,0.3,1)] hover:text-[var(--foreground)] hover:bg-[rgba(255,255,255,0.06)] active:scale-[0.97]"
           >
             Reset
           </button>

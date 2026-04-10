@@ -23,4 +23,11 @@ export {
   FilterIcon,
   CalendarIcon,
   TagIcon,
+  ChevronRightIcon,
+  InboxIcon,
+  BarChartIcon,
+  FolderIcon,
+  RepeatIcon,
+  SettingsIcon,
+  SearchIcon,
 } from "./icons";

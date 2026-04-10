@@ -51,7 +51,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   const activeTab = getActiveTab(pathname);
 
   return (
-    <div className="flex min-h-dvh flex-col bg-[var(--atlas-bg)]">
+    <div className="flex min-h-dvh flex-col bg-[var(--bg-base)]">
       <main className="flex-1 pb-[calc(80px+env(safe-area-inset-bottom))]">
         {children}
       </main>

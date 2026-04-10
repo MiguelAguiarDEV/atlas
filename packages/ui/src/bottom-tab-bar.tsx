@@ -24,8 +24,13 @@ export function BottomTabBar({
 }: BottomTabBarProps) {
   return (
     <nav
-      className={`fixed bottom-0 left-0 right-0 z-50 border-t border-[var(--atlas-border)] bg-[var(--atlas-bg)]/95 backdrop-blur-md ${className}`}
-      style={{ paddingBottom: "env(safe-area-inset-bottom)" }}
+      className={`fixed bottom-0 left-0 right-0 z-50 border-t border-[var(--border)] ${className}`}
+      style={{
+        paddingBottom: "env(safe-area-inset-bottom)",
+        background: "rgba(5,5,6,0.85)",
+        backdropFilter: "blur(20px)",
+        WebkitBackdropFilter: "blur(20px)",
+      }}
     >
       <div className="mx-auto flex max-w-lg items-center justify-around px-2 py-1">
         {tabs.map((tab) => {
@@ -40,13 +45,22 @@ export function BottomTabBar({
                   onTabChange(tab.key);
                 }
               }}
-              className={`flex min-h-[48px] min-w-[48px] flex-col items-center justify-center gap-0.5 rounded-lg px-3 py-1.5 transition-colors duration-200 ${
+              className={`relative flex min-h-[48px] min-w-[48px] flex-col items-center justify-center gap-0.5 rounded-[var(--radius-sm)] px-3 py-1.5 transition-all duration-200 ease-[cubic-bezier(0.16,1,0.3,1)] active:scale-[0.93] ${
                 isActive
-                  ? "text-[var(--atlas-accent)]"
-                  : "text-[var(--atlas-muted)] active:text-[var(--atlas-fg)]"
+                  ? "text-[var(--accent)]"
+                  : "text-[var(--foreground-muted)] active:text-[var(--foreground)]"
               }`}
               aria-current={isActive ? "page" : undefined}
             >
+              {/* Active indicator line */}
+              {isActive && (
+                <span
+                  className="absolute -top-1 h-[2px] w-5 rounded-full bg-[var(--accent)]"
+                  style={{
+                    boxShadow: "0 0 8px var(--accent-glow), 0 2px 12px var(--accent-glow)",
+                  }}
+                />
+              )}
               <span className="flex h-6 w-6 items-center justify-center">
                 {tab.icon}
               </span>

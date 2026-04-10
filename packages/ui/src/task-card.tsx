@@ -48,48 +48,62 @@ export function TaskCard({
 
   return (
     <div
-      className={`flex items-center gap-3 rounded-xl bg-[var(--atlas-surface)] px-4 py-3 transition-all duration-200 active:scale-[0.98] ${
+      className={`group flex items-center gap-3 rounded-[var(--radius)] bg-[var(--surface)] border border-[var(--border)] px-4 py-3.5 transition-all duration-200 ease-[cubic-bezier(0.16,1,0.3,1)] active:scale-[0.97] hover:bg-[var(--surface-hover)] hover:border-[var(--border-highlight)] ${
         checked ? "opacity-50" : ""
       } ${className}`}
+      style={{
+        boxShadow: "inset 0 1px 0 0 rgba(255,255,255,0.04)",
+      }}
     >
+      {/* Checkbox */}
       <button
         onClick={handleToggle}
-        className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full border-2 transition-all duration-200"
+        className="flex h-[22px] w-[22px] shrink-0 items-center justify-center rounded-full border-[1.5px] transition-all duration-200 ease-[cubic-bezier(0.16,1,0.3,1)]"
         style={{
-          borderColor: checked ? "var(--atlas-success)" : "var(--atlas-border)",
-          backgroundColor: checked ? "var(--atlas-success)" : "transparent",
+          borderColor: checked ? "var(--success)" : "rgba(255,255,255,0.15)",
+          backgroundColor: checked ? "var(--success)" : "transparent",
+          boxShadow: checked ? "0 0 12px var(--success-glow)" : "none",
         }}
         aria-label={checked ? "Mark incomplete" : "Mark complete"}
       >
-        {checked && <CheckIcon size={14} className="text-white" />}
+        {checked && (
+          <CheckIcon
+            size={12}
+            className="text-white animate-check"
+          />
+        )}
       </button>
 
+      {/* Content */}
       <div className="flex min-w-0 flex-1 flex-col gap-0.5">
         <span
-          className={`truncate text-sm font-medium transition-all duration-200 ${
-            checked ? "line-through text-[var(--atlas-muted)]" : ""
+          className={`truncate text-[13px] font-medium leading-tight transition-all duration-200 ${
+            checked
+              ? "line-through text-[var(--foreground-muted)]"
+              : "text-[var(--foreground)]"
           }`}
         >
           {task.title}
         </span>
         <div className="flex items-center gap-2">
           {showProject && task.project && (
-            <span className="truncate text-xs text-[var(--atlas-muted)]">
+            <span className="truncate rounded-[6px] bg-[rgba(255,255,255,0.04)] px-1.5 py-0.5 text-[11px] text-[var(--foreground-muted)]">
               {task.project}
             </span>
           )}
           {showDueDate && task.dueDate && (
-            <span className="text-xs text-[var(--atlas-muted)]">
+            <span className="text-[11px] text-[var(--foreground-muted)]">
               {task.dueDate}
             </span>
           )}
         </div>
       </div>
 
-      <div className="flex shrink-0 items-center gap-2">
+      {/* Right side: priority + estimate */}
+      <div className="flex shrink-0 items-center gap-2.5">
         <PriorityBadge priority={task.priority} />
         {task.estimatedMinutes && (
-          <span className="text-xs text-[var(--atlas-muted)]">
+          <span className="text-[11px] font-medium text-[var(--foreground-muted)] tabular-nums">
             {formatMinutes(task.estimatedMinutes)}
           </span>
         )}

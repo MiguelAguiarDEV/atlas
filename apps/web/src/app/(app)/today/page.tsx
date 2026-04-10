@@ -22,8 +22,17 @@ function getGreeting(): { text: string; icon: typeof SunIcon } {
   return { text: "Good evening", icon: MoonIcon };
 }
 
+function formatDate(): string {
+  return new Date().toLocaleDateString("en-US", {
+    weekday: "long",
+    month: "long",
+    day: "numeric",
+  });
+}
+
 export default function TodayPage() {
   const { text: greeting, icon: GreetingIcon } = getGreeting();
+  const dateStr = formatDate();
   const [tasks, setTasks] = useState<TaskData[]>([]);
   const [habits, setHabits] = useState<ApiHabit[]>([]);
   const [completedHabits, setCompletedHabits] = useState<Set<number>>(
@@ -73,7 +82,6 @@ export default function TodayPage() {
       const newTask = toTaskData(res.data, projectMap);
       setTasks((prev) => [...prev, newTask]);
     } catch {
-      // Optimistic fallback: add a temporary task so the UI still feels responsive
       const tempTask: TaskData = {
         id: `temp-${Date.now()}`,
         title,
@@ -89,7 +97,6 @@ export default function TodayPage() {
     if (!task) return;
 
     const newStatus = task.status === "done" ? "ready" : "done";
-    // Optimistic update
     setTasks((prev) =>
       prev.map((t) => (t.id === id ? { ...t, status: newStatus } : t)),
     );
@@ -97,7 +104,6 @@ export default function TodayPage() {
     try {
       await updateTask(Number(id), { status: newStatus });
     } catch {
-      // Revert on failure
       setTasks((prev) =>
         prev.map((t) => (t.id === id ? { ...t, status: task.status } : t)),
       );
@@ -106,36 +112,37 @@ export default function TodayPage() {
 
   const handleHabitToggle = async (idStr: string) => {
     const id = Number(idStr);
-    if (completedHabits.has(id)) return; // Already completed today
+    if (completedHabits.has(id)) return;
     try {
       await completeHabit(id);
       setCompletedHabits((prev) => new Set(prev).add(id));
     } catch {
-      // silently fail -- habit not marked
+      // silently fail
     }
   };
 
-  const completedCount = tasks.filter((t) => t.status === "done").length;
-  const totalEstimate = tasks.reduce(
+  const activeTasks = tasks.filter((t) => t.status !== "done");
+  const totalEstimate = activeTasks.reduce(
     (acc, t) => acc + (t.estimatedMinutes || 0),
     0,
   );
 
+  // Loading state
   if (loading) {
     return (
       <div className="mx-auto max-w-lg px-4 pt-safe">
         <header className="pb-6 pt-8">
-          <div className="flex items-center gap-2">
-            <GreetingIcon size={20} className="text-[var(--atlas-warning)]" />
-            <h1 className="text-2xl font-bold tracking-tight">{greeting}</h1>
-          </div>
-          <p className="mt-1 text-sm text-[var(--atlas-muted)]">Loading...</p>
+          <h1 className="text-h1 text-[var(--foreground)]">{greeting}</h1>
+          <p className="mt-1 text-[13px] text-[var(--foreground-muted)]">
+            {dateStr}
+          </p>
         </header>
-        <div className="flex flex-col gap-2">
+        <div className="flex flex-col gap-3">
           {[1, 2, 3].map((i) => (
             <div
               key={i}
-              className="h-16 animate-pulse rounded-xl bg-[var(--atlas-surface)]"
+              className="h-[60px] skeleton"
+              style={{ animationDelay: `${i * 100}ms` }}
             />
           ))}
         </div>
@@ -143,20 +150,21 @@ export default function TodayPage() {
     );
   }
 
+  // Error state
   if (error) {
     return (
       <div className="mx-auto max-w-lg px-4 pt-safe">
         <header className="pb-6 pt-8">
-          <div className="flex items-center gap-2">
-            <GreetingIcon size={20} className="text-[var(--atlas-warning)]" />
-            <h1 className="text-2xl font-bold tracking-tight">{greeting}</h1>
-          </div>
+          <h1 className="text-h1 text-[var(--foreground)]">{greeting}</h1>
+          <p className="mt-1 text-[13px] text-[var(--foreground-muted)]">
+            {dateStr}
+          </p>
         </header>
-        <div className="rounded-xl bg-red-500/10 px-4 py-6 text-center">
-          <p className="text-sm text-red-400">{error}</p>
+        <div className="glass-elevated px-4 py-8 text-center">
+          <p className="text-[13px] text-red-400">{error}</p>
           <button
             onClick={fetchData}
-            className="mt-3 rounded-lg bg-[var(--atlas-accent)] px-4 py-2 text-sm text-white"
+            className="mt-4 inline-flex items-center justify-center rounded-[var(--radius)] bg-[var(--accent)] px-5 py-2.5 text-[13px] font-medium text-white shadow-[0_0_20px_var(--accent-glow)] transition-all duration-200 ease-[cubic-bezier(0.16,1,0.3,1)] active:scale-[0.97]"
           >
             Retry
           </button>
@@ -167,56 +175,73 @@ export default function TodayPage() {
 
   return (
     <div className="mx-auto max-w-lg px-4 pt-safe">
-      {/* Header */}
-      <header className="pb-6 pt-8">
-        <div className="flex items-center gap-2">
-          <GreetingIcon size={20} className="text-[var(--atlas-warning)]" />
-          <h1 className="text-2xl font-bold tracking-tight">{greeting}</h1>
-        </div>
-        <p className="mt-1 text-sm text-[var(--atlas-muted)]">
-          {completedCount}/{tasks.length} tasks &middot; ~
-          {Math.round(totalEstimate / 60)}h estimated
+      {/* Header with greeting + date */}
+      <header className="pb-6 pt-8 animate-fade-in-up">
+        <h1 className="text-h1 text-[var(--foreground)]">{greeting}</h1>
+        <p className="mt-1 text-[13px] text-[var(--foreground-muted)]">
+          {dateStr}
         </p>
       </header>
 
-      {/* Energy Selector */}
-      <section className="pb-6">
-        <h2 className="mb-3 text-xs font-semibold uppercase tracking-wider text-[var(--atlas-muted)]">
-          Energy Level
-        </h2>
+      {/* Energy Selector — segmented control */}
+      <section className="pb-8 animate-fade-in-up" style={{ animationDelay: "50ms" }}>
         <EnergySelector />
       </section>
 
-      {/* Today's Tasks */}
-      <section className="pb-6">
-        <h2 className="mb-3 text-xs font-semibold uppercase tracking-wider text-[var(--atlas-muted)]">
-          Today&apos;s Tasks
-        </h2>
-        <div className="flex flex-col gap-2">
+      {/* Tasks Section */}
+      <section className="pb-8 animate-fade-in-up" style={{ animationDelay: "100ms" }}>
+        <div className="mb-3 flex items-center justify-between">
+          <h2 className="text-h3 text-[var(--foreground)]">
+            Tasks
+            <span className="ml-2 text-[13px] font-normal text-[var(--foreground-muted)]">
+              {activeTasks.length}
+            </span>
+          </h2>
+          {totalEstimate > 0 && (
+            <span className="text-[11px] text-[var(--foreground-muted)]">
+              ~{totalEstimate >= 60 ? `${Math.round(totalEstimate / 60)}h` : `${totalEstimate}m`}
+            </span>
+          )}
+        </div>
+        <div className="flex flex-col gap-3">
           {tasks.length === 0 ? (
-            <p className="py-8 text-center text-sm text-[var(--atlas-muted)]">
-              No tasks yet. Use quick capture below to create one!
-            </p>
+            <div className="glass-elevated px-4 py-10 text-center">
+              <p className="text-[13px] text-[var(--foreground-muted)]">
+                No tasks yet. Use quick capture below to add one.
+              </p>
+            </div>
           ) : (
-            tasks.map((task) => (
-              <TaskCard key={task.id} task={task} onToggle={handleToggle} />
+            tasks.map((task, i) => (
+              <div
+                key={task.id}
+                className="animate-fade-in-up"
+                style={{ animationDelay: `${150 + i * 50}ms` }}
+              >
+                <TaskCard task={task} onToggle={handleToggle} showProject />
+              </div>
             ))
           )}
         </div>
       </section>
 
-      {/* Habits */}
-      <section className="pb-32">
-        <h2 className="mb-3 text-xs font-semibold uppercase tracking-wider text-[var(--atlas-muted)]">
+      {/* Habits Section */}
+      <section className="pb-36 animate-fade-in-up" style={{ animationDelay: "200ms" }}>
+        <h2 className="mb-3 text-h3 text-[var(--foreground)]">
           Habits
+          <span className="ml-2 text-[13px] font-normal text-[var(--foreground-muted)]">
+            {habits.length}
+          </span>
         </h2>
-        <div className="flex flex-col gap-2">
-          {habits.length === 0 ? (
-            <p className="py-4 text-center text-sm text-[var(--atlas-muted)]">
-              No habits yet. Create one from the API.
+        {habits.length === 0 ? (
+          <div className="glass-elevated px-4 py-8 text-center">
+            <p className="text-[13px] text-[var(--foreground-muted)]">
+              No habits configured yet.
             </p>
-          ) : (
-            habits.map((habit) => (
+          </div>
+        ) : habits.length <= 4 ? (
+          /* Horizontal layout for 4 or fewer habits */
+          <div className="grid grid-cols-2 gap-3">
+            {habits.map((habit) => (
               <HabitCheck
                 key={habit.id}
                 id={String(habit.id)}
@@ -224,9 +249,21 @@ export default function TodayPage() {
                 defaultChecked={completedHabits.has(habit.id)}
                 onToggle={handleHabitToggle}
               />
-            ))
-          )}
-        </div>
+            ))}
+          </div>
+        ) : (
+          <div className="flex flex-col gap-3">
+            {habits.map((habit) => (
+              <HabitCheck
+                key={habit.id}
+                id={String(habit.id)}
+                label={habit.name}
+                defaultChecked={completedHabits.has(habit.id)}
+                onToggle={handleHabitToggle}
+              />
+            ))}
+          </div>
+        )}
       </section>
 
       {/* Quick Capture */}
