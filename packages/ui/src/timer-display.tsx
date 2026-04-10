@@ -49,7 +49,7 @@ export function TimerDisplay({ taskName, className = "" }: TimerDisplayProps) {
 
   const progress = Math.min((seconds % 3600) / 3600, 1);
   const radius = 110;
-  const svgSize = 264;
+  const svgSize = 220;
   const center = svgSize / 2;
   const circumference = 2 * Math.PI * radius;
   const offset = circumference * (1 - progress);
@@ -112,7 +112,7 @@ export function TimerDisplay({ taskName, className = "" }: TimerDisplayProps) {
         <div className="absolute flex flex-col items-center gap-1">
           <span
             style={{
-              fontSize: "48px",
+              fontSize: "36px",
               fontWeight: 300,
               letterSpacing: "0.04em",
               fontVariantNumeric: "tabular-nums",
