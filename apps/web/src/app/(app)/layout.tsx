@@ -10,6 +10,7 @@ import {
   ClockIcon,
   MenuIcon,
   BoardIcon,
+  FolderIcon,
   type SidebarItem,
 } from "@atlas/ui";
 
@@ -17,6 +18,7 @@ const navItems: SidebarItem[] = [
   { key: "today", label: "Today", icon: <HomeIcon size={20} />, href: "/today" },
   { key: "tasks", label: "Tasks", icon: <ListIcon size={20} />, href: "/tasks" },
   { key: "board", label: "Board", icon: <BoardIcon size={20} />, href: "/tasks/board" },
+  { key: "projects", label: "Projects", icon: <FolderIcon size={20} />, href: "/projects" },
   { key: "timer", label: "Timer", icon: <ClockIcon size={20} />, href: "/timer" },
   { key: "more", label: "More", icon: <MenuIcon size={20} />, href: "/more" },
 ];
@@ -25,6 +27,7 @@ function getActiveTab(pathname: string): string {
   if (pathname.startsWith("/today")) return "today";
   if (pathname === "/tasks/board") return "board";
   if (pathname.startsWith("/tasks")) return "tasks";
+  if (pathname.startsWith("/projects")) return "projects";
   if (pathname.startsWith("/timer")) return "timer";
   if (pathname.startsWith("/more")) return "more";
   return "today";

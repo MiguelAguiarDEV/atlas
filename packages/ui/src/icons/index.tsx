@@ -228,3 +228,11 @@ export function CloseIcon({ size = 24, ...props }: IconProps) {
     </svg>
   );
 }
+
+export function ArrowLeftIcon({ size = 24, ...props }: IconProps) {
+  return (
+    <svg {...defaultProps(size)} {...props}>
+      <path d="M19 12H5M12 19l-7-7 7-7" />
+    </svg>
+  );
+}

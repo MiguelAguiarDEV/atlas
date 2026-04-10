@@ -34,4 +34,5 @@ export {
   SearchIcon,
   BoardIcon,
   CloseIcon,
+  ArrowLeftIcon,
 } from "./icons";
