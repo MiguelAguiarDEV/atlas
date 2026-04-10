@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback, useRef, type DragEvent } from "react";
-import { TaskDetailPanel, type TaskData, type TaskComment } from "@atlas/ui";
+import { TaskDetailPanel, FilterBar, applyFilters, DEFAULT_FILTERS, type TaskData, type TaskComment, type TaskFilters, type ProjectOption } from "@atlas/ui";
 import { listTasks, updateTask, getTask, createTaskEvent, listTaskEvents } from "@/lib/api/tasks";
 import { listProjects, type ApiProject } from "@/lib/api/projects";
 import { toTaskData, toPriorityString } from "@/lib/mappers";
@@ -165,7 +165,9 @@ function CompactCard({
 
 export default function BoardPage() {
   const isDesktop = useIsDesktop();
+  const [filters, setFilters] = useState<TaskFilters>(DEFAULT_FILTERS);
   const [tasks, setTasks] = useState<TaskData[]>([]);
+  const [projectOptions, setProjectOptions] = useState<ProjectOption[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [selectedTask, setSelectedTask] = useState<TaskData | null>(null);
@@ -186,11 +188,13 @@ export default function BoardPage() {
         listProjects(),
       ]);
 
+      const projectList = projectsRes.data ?? [];
       const pMap = new Map<number, ApiProject>();
-      for (const p of projectsRes.data ?? []) {
+      for (const p of projectList) {
         pMap.set(p.id, p);
       }
 
+      setProjectOptions(projectList.map((p) => ({ id: p.id, name: p.name })));
       setTasks((tasksRes.data ?? []).map((t) => toTaskData(t, pMap)));
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to load tasks");
@@ -350,12 +354,13 @@ export default function BoardPage() {
     [handleTaskUpdate],
   );
 
-  // Group tasks by status
+  // Apply filters then group tasks by status
+  const filteredTasks = applyFilters(tasks, filters);
   const grouped = new Map<string, TaskData[]>();
   for (const status of STATUSES) {
     grouped.set(status.key, []);
   }
-  for (const task of tasks) {
+  for (const task of filteredTasks) {
     const key = task.status ?? "inbox";
     const list = grouped.get(key);
     if (list) {
@@ -429,6 +434,17 @@ export default function BoardPage() {
 
   return (
     <div style={{ padding: containerPadding }}>
+      {/* Filter bar */}
+      <div style={{ padding: isDesktop ? "0 0 16px 0" : "16px 20px" }}>
+        <FilterBar
+          filters={filters}
+          onFiltersChange={setFilters}
+          projects={projectOptions}
+          totalCount={tasks.length}
+          filteredCount={filteredTasks.length}
+        />
+      </div>
+
       {/* Board container */}
       <div
         className="scrollbar-none"

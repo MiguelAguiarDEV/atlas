@@ -42,6 +42,10 @@ export function toTaskData(
     project: project?.name,
     dueDate: formatDueDate(task.due_at),
     status: task.status,
+    projectId: task.project_id ?? undefined,
+    taskType: task.task_type || undefined,
+    dueDateRaw: task.due_at ?? undefined,
+    energy: task.energy ?? undefined,
   };
 }
 

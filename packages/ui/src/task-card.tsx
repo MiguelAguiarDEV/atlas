@@ -15,6 +15,14 @@ export interface TaskData {
   dueDate?: string;
   status?: string;
   labels?: string[];
+  /** Numeric project ID for filtering */
+  projectId?: number;
+  /** Raw task type string for filtering (task, bug, idea, etc.) */
+  taskType?: string;
+  /** Raw ISO due date for date-range filtering */
+  dueDateRaw?: string;
+  /** Energy level for filtering (high, medium, low) */
+  energy?: string;
 }
 
 interface TaskCardProps {

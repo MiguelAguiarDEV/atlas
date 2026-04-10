@@ -1,31 +1,11 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { TaskCard, TaskDetailPanel, SearchIcon, ListIcon, BoardIcon, type TaskData, type TaskComment } from "@atlas/ui";
+import { TaskCard, TaskDetailPanel, SearchIcon, ListIcon, BoardIcon, FilterBar, applyFilters, DEFAULT_FILTERS, type TaskData, type TaskComment, type TaskFilters, type ProjectOption } from "@atlas/ui";
 import { listTasks, updateTask, getTask, createTaskEvent, listTaskEvents } from "@/lib/api/tasks";
 import { listProjects, type ApiProject } from "@/lib/api/projects";
 import { toTaskData, toPriorityString } from "@/lib/mappers";
 import Link from "next/link";
-
-type Filter = "all" | "inbox" | "in_progress" | "done";
-
-const FILTERS: { key: Filter; label: string }[] = [
-  { key: "all", label: "All" },
-  { key: "inbox", label: "Inbox" },
-  { key: "in_progress", label: "In Progress" },
-  { key: "done", label: "Done" },
-];
-
-function filterTasks(tasks: TaskData[], filter: Filter): TaskData[] {
-  if (filter === "all") return tasks;
-  if (filter === "inbox") return tasks.filter((t) => t.status === "inbox");
-  if (filter === "in_progress")
-    return tasks.filter(
-      (t) => t.status === "in_progress" || t.status === "ready",
-    );
-  if (filter === "done") return tasks.filter((t) => t.status === "done");
-  return tasks;
-}
 
 function useIsDesktop() {
   const [isDesktop, setIsDesktop] = useState(false);
@@ -41,9 +21,9 @@ function useIsDesktop() {
 
 export default function TasksPage() {
   const isDesktop = useIsDesktop();
-  const [activeFilter, setActiveFilter] = useState<Filter>("all");
-  const [searchQuery, setSearchQuery] = useState("");
+  const [filters, setFilters] = useState<TaskFilters>(DEFAULT_FILTERS);
   const [tasks, setTasks] = useState<TaskData[]>([]);
+  const [projectOptions, setProjectOptions] = useState<ProjectOption[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [selectedTask, setSelectedTask] = useState<TaskData | null>(null);
@@ -60,11 +40,13 @@ export default function TasksPage() {
         listProjects(),
       ]);
 
+      const projectList = projectsRes.data ?? [];
       const pMap = new Map<number, ApiProject>();
-      for (const p of projectsRes.data ?? []) {
+      for (const p of projectList) {
         pMap.set(p.id, p);
       }
 
+      setProjectOptions(projectList.map((p) => ({ id: p.id, name: p.name })));
       setTasks((tasksRes.data ?? []).map((t) => toTaskData(t, pMap)));
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to load tasks");
@@ -179,11 +161,7 @@ export default function TasksPage() {
     }
   };
 
-  const filtered = filterTasks(tasks, activeFilter).filter((t) =>
-    searchQuery
-      ? t.title.toLowerCase().includes(searchQuery.toLowerCase())
-      : true,
-  );
+  const filtered = applyFilters(tasks, filters);
 
   const containerStyle: React.CSSProperties = isDesktop
     ? {}
@@ -334,8 +312,8 @@ export default function TasksPage() {
       />
       <input
         type="text"
-        value={searchQuery}
-        onChange={(e) => setSearchQuery(e.target.value)}
+        value={filters.search}
+        onChange={(e) => setFilters({ ...filters, search: e.target.value })}
         placeholder="Search tasks..."
         style={{
           flex: 1,
@@ -349,36 +327,6 @@ export default function TasksPage() {
       />
     </div>
   );
-
-  const filterPills = FILTERS.map((f) => {
-    const count = filterTasks(tasks, f.key).length;
-    const isActive = activeFilter === f.key;
-    return (
-      <button
-        key={f.key}
-        onClick={() => setActiveFilter(f.key)}
-        style={{
-          flexShrink: 0,
-          padding: "8px 16px",
-          minHeight: "44px",
-          fontSize: "13px",
-          fontWeight: 500,
-          borderRadius: "9999px",
-          border: isActive ? "1px solid var(--border-hover)" : "1px solid transparent",
-          background: isActive ? "var(--bg-elevated)" : "transparent",
-          color: isActive ? "var(--text-primary)" : "var(--text-secondary)",
-          cursor: "pointer",
-          transition: "all 200ms cubic-bezier(0.16,1,0.3,1)",
-          position: "relative" as const,
-        }}
-      >
-        {f.label}
-        <span style={{ marginLeft: "6px", fontSize: "12px", opacity: 0.6, fontVariantNumeric: "tabular-nums" }}>
-          {count}
-        </span>
-      </button>
-    );
-  });
 
   const emptyState = (
     <div className="animate-fade-in" style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "80px 0", textAlign: "center" }}>
@@ -398,9 +346,9 @@ export default function TasksPage() {
         No tasks here
       </p>
       <p style={{ marginTop: "6px", maxWidth: "240px", fontSize: "12px", color: "var(--text-tertiary)" }}>
-        {activeFilter === "done"
+        {filters.statuses.includes("done")
           ? "Nothing completed yet. Keep going!"
-          : searchQuery
+          : filters.search
             ? "No tasks match your search."
             : "All caught up. Nice work!"}
       </p>
@@ -433,16 +381,19 @@ export default function TasksPage() {
         className="animate-fade-in-up"
         style={{
           display: "flex",
-          flexDirection: isDesktop ? "row" : "column",
-          alignItems: isDesktop ? "center" : "stretch",
-          gap: isDesktop ? "16px" : "12px",
+          flexDirection: "column",
+          gap: "12px",
           paddingBottom: "24px",
         }}
       >
         {searchInput}
-        <div className="scrollbar-none" style={{ display: "flex", gap: "8px", overflowX: "auto" }}>
-          {filterPills}
-        </div>
+        <FilterBar
+          filters={filters}
+          onFiltersChange={setFilters}
+          projects={projectOptions}
+          totalCount={tasks.length}
+          filteredCount={filtered.length}
+        />
       </div>
 
       {/* Task list */}
