@@ -72,7 +72,7 @@ export function TimerDisplay({ taskName, className = "" }: TimerDisplayProps) {
       )}
 
       {/* Timer ring */}
-      <div style={{ position: "relative", display: "flex", alignItems: "center", justifyContent: "center" }}>
+      <div style={{ position: "relative", display: "flex", alignItems: "center", justifyContent: "center", width: "240px", height: "240px" }}>
         <svg
           width={svgSize}
           height={svgSize}
