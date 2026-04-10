@@ -72,7 +72,7 @@ export function TimerDisplay({ taskName, className = "" }: TimerDisplayProps) {
       )}
 
       {/* Timer ring */}
-      <div className="relative flex items-center justify-center">
+      <div style={{ position: "relative", display: "flex", alignItems: "center", justifyContent: "center" }}>
         <svg
           width={svgSize}
           height={svgSize}
@@ -144,7 +144,7 @@ export function TimerDisplay({ taskName, className = "" }: TimerDisplayProps) {
       </div>
 
       {/* Controls */}
-      <div className="flex items-center" style={{ gap: "16px" }}>
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "16px" }}>
         {/* P0-02: Large prominent play/stop button with inline styles */}
         <button
           onClick={running ? stop : start}
