@@ -32,5 +32,18 @@ services:
     ports:
       - "127.0.0.1:4000:4000"
 
+  atlas-web:
+    build:
+      context: .
+      dockerfile: apps/web/Dockerfile
+      args:
+        NEXT_PUBLIC_API_URL: http://100.71.66.54:4000
+    container_name: atlas-web
+    restart: unless-stopped
+    depends_on:
+      - api
+    ports:
+      - "0.0.0.0:3000:3000"
+
 volumes:
   atlas_data:
