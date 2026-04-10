@@ -64,7 +64,7 @@ export default function TimerPage() {
           </p>
         </header>
         <div className="flex flex-col items-center gap-6">
-          <div className="h-[264px] w-[264px] rounded-full skeleton" />
+          <div className="rounded-full skeleton" style={{ width: "264px", height: "264px" }} />
         </div>
       </div>
     );
@@ -90,129 +90,238 @@ export default function TimerPage() {
     );
   }
 
-  return (
-    <div className="mx-auto max-w-lg px-4 pt-safe">
-      {/* Header */}
-      <header className="pb-6 pt-8 animate-fade-in-up">
-        <h1 className="text-h1 text-[var(--foreground)]">Timer</h1>
-        <p className="mt-1 text-[13px] text-[var(--foreground-muted)]">
-          Track your focus time
-        </p>
-      </header>
-
-      {/* Timer Display */}
-      <section className="pb-8 animate-fade-in-up" style={{ animationDelay: "50ms" }}>
-        <TimerDisplay
-          taskName={currentTask?.title ?? "No task in progress"}
-        />
-      </section>
-
-      {/* Today's Stats — glass cards */}
-      <section className="pb-8 animate-fade-in-up" style={{ animationDelay: "100ms" }}>
-        <div className="grid grid-cols-2 gap-3">
-          {/* Focus time card */}
-          <div
-            className="glass-elevated flex flex-col items-center gap-2 px-4 py-5"
-          >
-            <div
-              className="flex h-10 w-10 items-center justify-center rounded-full"
-              style={{ background: "var(--accent-subtle)" }}
-            >
-              <ClockIcon size={18} className="text-[var(--accent)]" />
-            </div>
-            <span className="text-[12px] text-[var(--foreground-muted)]">
-              Focus time
-            </span>
-            <span
-              className="text-[20px] font-semibold tabular-nums text-[var(--foreground)]"
-              style={{ fontFamily: "var(--font-mono)" }}
-            >
-              {todayTotalSecs > 0 ? formatDuration(todayTotalSecs) : "0m"}
-            </span>
-          </div>
-
-          {/* Sessions card */}
-          <div
-            className="glass-elevated flex flex-col items-center gap-2 px-4 py-5"
-          >
-            <div
-              className="flex h-10 w-10 items-center justify-center rounded-full"
-              style={{ background: "rgba(34,197,94,0.12)" }}
-            >
-              <svg
-                width="18"
-                height="18"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="var(--success)"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              >
-                <path d="M12 20V10M18 20V4M6 20v-4" />
-              </svg>
-            </div>
-            <span className="text-[12px] text-[var(--foreground-muted)]">
-              Sessions
-            </span>
-            <span
-              className="text-[20px] font-semibold tabular-nums text-[var(--foreground)]"
-              style={{ fontFamily: "var(--font-mono)" }}
-            >
-              {todayEntries.length}
-            </span>
-          </div>
+  /* Shared sections */
+  const statsCards = (
+    <div className="grid grid-cols-2 gap-3">
+      {/* Focus time card */}
+      <div className="glass-elevated flex flex-col items-center gap-2 px-4 py-5">
+        <div
+          className="flex h-10 w-10 items-center justify-center rounded-full"
+          style={{ background: "var(--accent-subtle)" }}
+        >
+          <ClockIcon size={18} className="text-[var(--accent)]" />
         </div>
-      </section>
+        <span className="text-[12px] text-[var(--foreground-muted)]">
+          Focus time
+        </span>
+        <span
+          className="text-[20px] font-semibold tabular-nums text-[var(--foreground)]"
+          style={{ fontFamily: "var(--font-mono)" }}
+        >
+          {todayTotalSecs > 0 ? formatDuration(todayTotalSecs) : "0m"}
+        </span>
+      </div>
 
-      {/* Recent Sessions */}
-      <section className="pb-24 animate-fade-in-up" style={{ animationDelay: "150ms" }}>
-        <h2 className="mb-3 text-h3 text-[var(--foreground)]">
-          Recent Sessions
-        </h2>
-        <div className="flex flex-col gap-1">
-          {recentEntries.length === 0 ? (
-            <div className="glass-elevated px-4 py-8 text-center">
-              <p className="text-[13px] text-[var(--foreground-muted)]">
-                No sessions yet. Start a timer above!
-              </p>
+      {/* Sessions card */}
+      <div className="glass-elevated flex flex-col items-center gap-2 px-4 py-5">
+        <div
+          className="flex h-10 w-10 items-center justify-center rounded-full"
+          style={{ background: "rgba(34,197,94,0.12)" }}
+        >
+          <svg
+            width="18"
+            height="18"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="var(--success)"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
+            <path d="M12 20V10M18 20V4M6 20v-4" />
+          </svg>
+        </div>
+        <span className="text-[12px] text-[var(--foreground-muted)]">
+          Sessions
+        </span>
+        <span
+          className="text-[20px] font-semibold tabular-nums text-[var(--foreground)]"
+          style={{ fontFamily: "var(--font-mono)" }}
+        >
+          {todayEntries.length}
+        </span>
+      </div>
+    </div>
+  );
+
+  const recentSessionsList = recentEntries.map((entry, i) => {
+    const task = tasks.find((t) => t.id === entry.task_id);
+    const time = new Date(entry.started_at).toLocaleTimeString(
+      "en-US",
+      { hour: "numeric", minute: "2-digit" },
+    );
+    return (
+      <div
+        key={entry.id}
+        className="flex items-center gap-3 rounded-[var(--radius-sm)] px-4 py-3 transition-all duration-200 ease-[cubic-bezier(0.16,1,0.3,1)] hover:bg-[var(--surface)] animate-fade-in-up"
+        style={{ animationDelay: `${200 + i * 50}ms` }}
+      >
+        <div className="h-2 w-2 shrink-0 rounded-full bg-[var(--accent)]" />
+        <div className="flex min-w-0 flex-1 flex-col">
+          <span className="truncate text-[13px] text-[var(--foreground)]">
+            {task?.title ?? "Unknown task"}
+          </span>
+          <span className="text-[12px] text-[var(--foreground-muted)]">
+            {time}
+          </span>
+        </div>
+        <span
+          className="shrink-0 text-[13px] font-medium text-[var(--foreground-muted)] tabular-nums"
+          style={{ fontFamily: "var(--font-mono)" }}
+        >
+          {entry.duration_secs
+            ? formatDuration(entry.duration_secs)
+            : "--"}
+        </span>
+      </div>
+    );
+  });
+
+  const recentSessionsEmpty = (
+    <div className="glass-elevated px-4 py-8 text-center">
+      <p className="text-[13px] text-[var(--foreground-muted)]">
+        No sessions yet. Start a timer above!
+      </p>
+    </div>
+  );
+
+  return (
+    <>
+      {/* Mobile layout */}
+      <div className="mobile-only" style={{ display: "block" }}>
+        <div className="mx-auto max-w-lg px-4 pt-safe">
+          <header className="pb-6 pt-8 animate-fade-in-up">
+            <h1 className="text-h1 text-[var(--foreground)]">Timer</h1>
+            <p className="mt-1 text-[13px] text-[var(--foreground-muted)]">
+              Track your focus time
+            </p>
+          </header>
+
+          <section className="pb-8 animate-fade-in-up" style={{ animationDelay: "50ms" }}>
+            <TimerDisplay
+              taskName={currentTask?.title ?? "No task in progress"}
+            />
+          </section>
+
+          <section className="pb-8 animate-fade-in-up" style={{ animationDelay: "100ms" }}>
+            {statsCards}
+          </section>
+
+          <section className="pb-24 animate-fade-in-up" style={{ animationDelay: "150ms" }}>
+            <h2 className="mb-3 text-h3 text-[var(--foreground)]">
+              Recent Sessions
+            </h2>
+            <div className="flex flex-col gap-1">
+              {recentEntries.length === 0 ? recentSessionsEmpty : recentSessionsList}
             </div>
+          </section>
+        </div>
+      </div>
+
+      {/* Desktop layout - centered with larger timer */}
+      <div className="desktop-only" style={{ flexDirection: "column" }}>
+        <header className="animate-fade-in-up" style={{ paddingBottom: "24px" }}>
+          <h1 className="text-h1 text-[var(--foreground)]">Timer</h1>
+          <p className="mt-1 text-[13px] text-[var(--foreground-muted)]">
+            Track your focus time
+          </p>
+        </header>
+
+        {/* Timer centered, larger on desktop */}
+        <section
+          className="animate-fade-in-up"
+          style={{
+            display: "flex",
+            justifyContent: "center",
+            paddingBottom: "40px",
+            animationDelay: "50ms",
+          }}
+        >
+          <div style={{ width: "300px" }}>
+            <TimerDisplay
+              taskName={currentTask?.title ?? "No task in progress"}
+            />
+          </div>
+        </section>
+
+        {/* Stats side by side */}
+        <section className="animate-fade-in-up" style={{ paddingBottom: "32px", animationDelay: "100ms" }}>
+          {statsCards}
+        </section>
+
+        {/* Recent sessions as table-like layout */}
+        <section className="animate-fade-in-up" style={{ animationDelay: "150ms" }}>
+          <h2 className="mb-3 text-h3 text-[var(--foreground)]">
+            Recent Sessions
+          </h2>
+          {recentEntries.length === 0 ? (
+            recentSessionsEmpty
           ) : (
-            recentEntries.map((entry, i) => {
-              const task = tasks.find((t) => t.id === entry.task_id);
-              const time = new Date(entry.started_at).toLocaleTimeString(
-                "en-US",
-                { hour: "numeric", minute: "2-digit" },
-              );
-              return (
-                <div
-                  key={entry.id}
-                  className="flex items-center gap-3 rounded-[var(--radius-sm)] px-4 py-3 transition-all duration-200 ease-[cubic-bezier(0.16,1,0.3,1)] hover:bg-[var(--surface)] animate-fade-in-up"
-                  style={{ animationDelay: `${200 + i * 50}ms` }}
-                >
-                  <div className="h-2 w-2 shrink-0 rounded-full bg-[var(--accent)]" />
-                  <div className="flex min-w-0 flex-1 flex-col">
-                    <span className="truncate text-[13px] text-[var(--foreground)]">
-                      {task?.title ?? "Unknown task"}
-                    </span>
-                    <span className="text-[12px] text-[var(--foreground-muted)]">
+            <div
+              className="glass-elevated"
+              style={{ overflow: "hidden" }}
+            >
+              {/* Table header */}
+              <div
+                style={{
+                  display: "grid",
+                  gridTemplateColumns: "1fr 120px 100px",
+                  padding: "12px 16px",
+                  borderBottom: "1px solid var(--border)",
+                  gap: "12px",
+                }}
+              >
+                <span className="text-[12px] font-medium text-[var(--foreground-muted)]">Task</span>
+                <span className="text-[12px] font-medium text-[var(--foreground-muted)]">Time</span>
+                <span className="text-[12px] font-medium text-[var(--foreground-muted)] text-right">Duration</span>
+              </div>
+              {/* Table rows */}
+              {recentEntries.map((entry, i) => {
+                const task = tasks.find((t) => t.id === entry.task_id);
+                const time = new Date(entry.started_at).toLocaleTimeString(
+                  "en-US",
+                  { hour: "numeric", minute: "2-digit" },
+                );
+                return (
+                  <div
+                    key={entry.id}
+                    className="animate-fade-in-up"
+                    style={{
+                      display: "grid",
+                      gridTemplateColumns: "1fr 120px 100px",
+                      padding: "12px 16px",
+                      gap: "12px",
+                      borderBottom: i < recentEntries.length - 1 ? "1px solid rgba(255,255,255,0.06)" : "none",
+                      animationDelay: `${200 + i * 50}ms`,
+                    }}
+                  >
+                    <div className="flex items-center gap-3 min-w-0">
+                      <div
+                        className="shrink-0 rounded-full bg-[var(--accent)]"
+                        style={{ width: "6px", height: "6px" }}
+                      />
+                      <span className="truncate text-[13px] text-[var(--foreground)]">
+                        {task?.title ?? "Unknown task"}
+                      </span>
+                    </div>
+                    <span className="text-[13px] text-[var(--foreground-muted)] flex items-center">
                       {time}
                     </span>
+                    <span
+                      className="text-[13px] font-medium text-[var(--foreground-muted)] tabular-nums text-right flex items-center justify-end"
+                      style={{ fontFamily: "var(--font-mono)" }}
+                    >
+                      {entry.duration_secs
+                        ? formatDuration(entry.duration_secs)
+                        : "--"}
+                    </span>
                   </div>
-                  <span
-                    className="shrink-0 text-[13px] font-medium text-[var(--foreground-muted)] tabular-nums"
-                    style={{ fontFamily: "var(--font-mono)" }}
-                  >
-                    {entry.duration_secs
-                      ? formatDuration(entry.duration_secs)
-                      : "--"}
-                  </span>
-                </div>
-              );
-            })
+                );
+              })}
+            </div>
           )}
-        </div>
-      </section>
-    </div>
+        </section>
+      </div>
+    </>
   );
 }

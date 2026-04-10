@@ -173,69 +173,21 @@ export default function TodayPage() {
     );
   }
 
-  return (
-    <div className="mx-auto max-w-lg pt-safe" style={{ padding: "60px 20px 180px 20px" }}>
-      {/* Header with greeting + date */}
-      <header className="animate-fade-in-up" style={{ paddingBottom: "24px" }}>
-        <h1 className="text-h1 text-[var(--foreground)]">{greeting}</h1>
-        <p className="mt-1 text-[13px] text-[var(--foreground-muted)]">
-          {dateStr}
-        </p>
-      </header>
+  /* Shared content sections */
+  const headerSection = (
+    <header className="animate-fade-in-up" style={{ paddingBottom: "24px" }}>
+      <h1 className="text-h1 text-[var(--foreground)]">{greeting}</h1>
+      <p className="mt-1 text-[13px] text-[var(--foreground-muted)]">
+        {dateStr}
+      </p>
+    </header>
+  );
 
-      {/* Energy Selector — segmented control */}
-      <section className="animate-fade-in-up" style={{ animationDelay: "50ms", paddingBottom: "32px" }}>
-        <EnergySelector />
-      </section>
-
-      {/* Tasks Section */}
-      <section className="animate-fade-in-up" style={{ animationDelay: "100ms", paddingBottom: "32px" }}>
-        <div className="flex items-center justify-between" style={{ marginBottom: "12px" }}>
-          <h2 className="text-[15px] font-semibold text-[var(--foreground)]">
-            Tasks
-            <span
-              className="ml-2 text-[12px] font-semibold"
-              style={{
-                background: "rgba(94,106,210,0.15)",
-                color: "var(--accent)",
-                padding: "2px 8px",
-                borderRadius: "9999px",
-              }}
-            >
-              {activeTasks.length}
-            </span>
-          </h2>
-          {totalEstimate > 0 && (
-            <span className="text-[12px] text-[var(--foreground-muted)]">
-              ~{totalEstimate >= 60 ? `${Math.round(totalEstimate / 60)}h` : `${totalEstimate}m`}
-            </span>
-          )}
-        </div>
-        <div className="flex flex-col" style={{ gap: "12px" }}>
-          {tasks.length === 0 ? (
-            <div className="glass-elevated px-4 py-10 text-center">
-              <p className="text-[13px] text-[var(--foreground-muted)]">
-                No tasks yet. Use quick capture below to add one.
-              </p>
-            </div>
-          ) : (
-            tasks.map((task, i) => (
-              <div
-                key={task.id}
-                className="animate-fade-in-up"
-                style={{ animationDelay: `${150 + i * 50}ms` }}
-              >
-                <TaskCard task={task} onToggle={handleToggle} showProject />
-              </div>
-            ))
-          )}
-        </div>
-      </section>
-
-      {/* Habits Section */}
-      <section className="animate-fade-in-up" style={{ animationDelay: "200ms" }}>
-        <h2 className="text-[15px] font-semibold text-[var(--foreground)]" style={{ marginBottom: "12px" }}>
-          Habits
+  const tasksSection = (
+    <section className="animate-fade-in-up" style={{ animationDelay: "100ms", paddingBottom: "32px" }}>
+      <div className="flex items-center justify-between" style={{ marginBottom: "12px" }}>
+        <h2 className="text-[15px] font-semibold text-[var(--foreground)]">
+          Tasks
           <span
             className="ml-2 text-[12px] font-semibold"
             style={{
@@ -245,32 +197,137 @@ export default function TodayPage() {
               borderRadius: "9999px",
             }}
           >
-            {habits.length}
+            {activeTasks.length}
           </span>
         </h2>
-        {habits.length === 0 ? (
-          <div className="glass-elevated px-4 py-8 text-center">
+        {totalEstimate > 0 && (
+          <span className="text-[12px] text-[var(--foreground-muted)]">
+            ~{totalEstimate >= 60 ? `${Math.round(totalEstimate / 60)}h` : `${totalEstimate}m`}
+          </span>
+        )}
+      </div>
+      <div className="flex flex-col" style={{ gap: "12px" }}>
+        {tasks.length === 0 ? (
+          <div className="glass-elevated px-4 py-10 text-center">
             <p className="text-[13px] text-[var(--foreground-muted)]">
-              No habits configured yet.
+              No tasks yet. Use quick capture below to add one.
             </p>
           </div>
         ) : (
-          <div className="flex flex-col" style={{ gap: "12px" }}>
-            {habits.map((habit) => (
-              <HabitCheck
-                key={habit.id}
-                id={String(habit.id)}
-                label={habit.name}
-                defaultChecked={completedHabits.has(habit.id)}
-                onToggle={handleHabitToggle}
-              />
-            ))}
-          </div>
+          tasks.map((task, i) => (
+            <div
+              key={task.id}
+              className="animate-fade-in-up"
+              style={{ animationDelay: `${150 + i * 50}ms` }}
+            >
+              <TaskCard task={task} onToggle={handleToggle} showProject />
+            </div>
+          ))
         )}
-      </section>
+      </div>
+    </section>
+  );
 
-      {/* Quick Capture */}
-      <QuickCapture onCapture={handleCapture} />
-    </div>
+  const energySection = (
+    <section className="animate-fade-in-up" style={{ animationDelay: "50ms", paddingBottom: "32px" }}>
+      <EnergySelector />
+    </section>
+  );
+
+  const habitsSection = (
+    <section className="animate-fade-in-up" style={{ animationDelay: "200ms" }}>
+      <h2 className="text-[15px] font-semibold text-[var(--foreground)]" style={{ marginBottom: "12px" }}>
+        Habits
+        <span
+          className="ml-2 text-[12px] font-semibold"
+          style={{
+            background: "rgba(94,106,210,0.15)",
+            color: "var(--accent)",
+            padding: "2px 8px",
+            borderRadius: "9999px",
+          }}
+        >
+          {habits.length}
+        </span>
+      </h2>
+      {habits.length === 0 ? (
+        <div className="glass-elevated px-4 py-8 text-center">
+          <p className="text-[13px] text-[var(--foreground-muted)]">
+            No habits configured yet.
+          </p>
+        </div>
+      ) : (
+        <div className="flex flex-col" style={{ gap: "12px" }}>
+          {habits.map((habit) => (
+            <HabitCheck
+              key={habit.id}
+              id={String(habit.id)}
+              label={habit.name}
+              defaultChecked={completedHabits.has(habit.id)}
+              onToggle={handleHabitToggle}
+            />
+          ))}
+        </div>
+      )}
+    </section>
+  );
+
+  const statsSection = (
+    <section className="animate-fade-in-up" style={{ animationDelay: "250ms", paddingTop: "24px" }}>
+      <h2 className="text-[15px] font-semibold text-[var(--foreground)]" style={{ marginBottom: "12px" }}>
+        Overview
+      </h2>
+      <div className="grid grid-cols-2 gap-3">
+        <div className="glass-elevated flex flex-col items-center gap-1 px-4 py-4">
+          <span className="text-[20px] font-semibold text-[var(--foreground)] tabular-nums">{activeTasks.length}</span>
+          <span className="text-[12px] text-[var(--foreground-muted)]">Active tasks</span>
+        </div>
+        <div className="glass-elevated flex flex-col items-center gap-1 px-4 py-4">
+          <span className="text-[20px] font-semibold text-[var(--foreground)] tabular-nums">
+            {totalEstimate >= 60 ? `${Math.round(totalEstimate / 60)}h` : `${totalEstimate}m`}
+          </span>
+          <span className="text-[12px] text-[var(--foreground-muted)]">Estimated</span>
+        </div>
+      </div>
+    </section>
+  );
+
+  return (
+    <>
+      {/* Mobile layout */}
+      <div className="mobile-only" style={{ display: "block" }}>
+        <div className="mx-auto max-w-lg pt-safe" style={{ padding: "60px 20px 180px 20px" }}>
+          {headerSection}
+          {energySection}
+          {tasksSection}
+          {habitsSection}
+          <QuickCapture onCapture={handleCapture} />
+        </div>
+      </div>
+
+      {/* Desktop layout - two columns */}
+      <div className="desktop-only" style={{ flexDirection: "column" }}>
+        {headerSection}
+
+        {/* Quick capture bar - full width on desktop */}
+        <div style={{ paddingBottom: "32px" }}>
+          <QuickCapture onCapture={handleCapture} />
+        </div>
+
+        {/* Two column layout */}
+        <div style={{ display: "flex", gap: "32px" }}>
+          {/* Left column - 60% - tasks */}
+          <div style={{ flex: "0 0 60%", minWidth: 0 }}>
+            {tasksSection}
+          </div>
+          {/* Right column - 40% - energy, habits, stats */}
+          <div style={{ flex: "0 0 calc(40% - 32px)", minWidth: 0 }}>
+            {energySection}
+            {habitsSection}
+            {statsSection}
+          </div>
+        </div>
+      </div>
+    </>
   );
 }

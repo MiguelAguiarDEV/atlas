@@ -334,3 +334,21 @@ body {
 .font-mono {
   font-family: var(--font-mono);
 }
+
+/* --- Responsive Utilities --- */
+.desktop-only {
+  display: none !important;
+}
+
+.mobile-only {
+  display: flex;
+}
+
+@media (min-width: 768px) {
+  .desktop-only {
+    display: flex !important;
+  }
+  .mobile-only {
+    display: none !important;
+  }
+}
