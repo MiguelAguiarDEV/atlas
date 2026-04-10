@@ -38,3 +38,17 @@ body {
     -webkit-text-size-adjust: 100%;
   }
 }
+
+/* Safe area padding for notched devices */
+.pt-safe {
+  padding-top: env(safe-area-inset-top);
+}
+
+/* Hide scrollbar but allow scroll */
+.scrollbar-none {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.scrollbar-none::-webkit-scrollbar {
+  display: none;
+}
