@@ -45,7 +45,11 @@ export function BottomTabBar({
                   onTabChange(tab.key);
                 }
               }}
-              className={`relative flex min-h-[48px] min-w-[48px] flex-col items-center justify-center gap-0.5 rounded-[var(--radius-sm)] px-3 py-1.5 transition-all duration-200 ease-[cubic-bezier(0.16,1,0.3,1)] active:scale-[0.93] ${
+              style={{
+                minWidth: "48px",
+                minHeight: "48px",
+              }}
+              className={`relative flex flex-col items-center justify-center gap-0.5 rounded-[var(--radius-sm)] px-3 py-1.5 transition-all duration-200 ease-[cubic-bezier(0.16,1,0.3,1)] active:scale-[0.93] ${
                 isActive
                   ? "text-[var(--accent)]"
                   : "text-[var(--foreground-muted)] active:text-[var(--foreground)]"
