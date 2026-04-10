@@ -37,6 +37,7 @@ export function HabitCheck({
           : "bg-[var(--surface)] border-[var(--border)] hover:bg-[var(--surface-hover)] hover:border-[var(--border-highlight)]"
       } ${className}`}
       style={{
+        minHeight: "52px",
         boxShadow: checked
           ? "inset 0 1px 0 0 rgba(34,197,94,0.08)"
           : "inset 0 1px 0 0 rgba(255,255,255,0.04)",

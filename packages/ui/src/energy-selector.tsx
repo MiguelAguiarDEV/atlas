@@ -66,7 +66,8 @@ export function EnergySelector({
           <button
             key={value}
             onClick={() => handleSelect(value)}
-            className={`flex flex-1 items-center justify-center gap-2 rounded-[var(--radius-sm)] px-3 py-2.5 text-[13px] font-medium transition-all duration-200 ease-[cubic-bezier(0.16,1,0.3,1)] active:scale-[0.97] min-h-[44px] ${
+            style={{ minHeight: "44px" }}
+            className={`flex flex-1 items-center justify-center gap-2 rounded-[var(--radius-sm)] px-3 py-2.5 text-[13px] font-medium transition-all duration-200 ease-[cubic-bezier(0.16,1,0.3,1)] active:scale-[0.97] ${
               isActive
                 ? `${activeBg} ${activeColor}`
                 : "text-[var(--foreground-muted)] hover:text-[var(--foreground)] hover:bg-[rgba(255,255,255,0.04)]"
