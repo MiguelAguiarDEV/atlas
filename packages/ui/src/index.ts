@@ -9,6 +9,14 @@ export { TaskDetailPanel } from "./task-detail-panel";
 export { QuickCapture } from "./quick-capture";
 export { HabitCheck } from "./habit-check";
 export {
+  FilterBar,
+  applyFilters,
+  countActiveFilters,
+  DEFAULT_FILTERS,
+  type TaskFilters,
+  type ProjectOption,
+} from "./filter-bar";
+export {
   HomeIcon,
   ListIcon,
   ClockIcon,
@@ -35,4 +43,5 @@ export {
   BoardIcon,
   CloseIcon,
   ArrowLeftIcon,
+  ChevronDownIcon,
 } from "./icons";

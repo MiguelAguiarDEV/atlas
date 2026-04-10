@@ -12,9 +12,13 @@ export interface TaskData {
   priority: Priority;
   estimatedMinutes?: number;
   project?: string;
+  projectId?: number;
   dueDate?: string;
+  dueDateRaw?: string;
   status?: string;
   labels?: string[];
+  energy?: string;
+  taskType?: string;
 }
 
 interface TaskCardProps {

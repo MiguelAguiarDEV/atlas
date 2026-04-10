@@ -40,8 +40,12 @@ export function toTaskData(
     priority: mapPriority(task.priority),
     estimatedMinutes: task.estimated_mins ?? undefined,
     project: project?.name,
+    projectId: task.project_id ?? undefined,
     dueDate: formatDueDate(task.due_at),
+    dueDateRaw: task.due_at ?? undefined,
     status: task.status,
+    energy: task.energy ?? undefined,
+    taskType: task.task_type ?? undefined,
   };
 }
 

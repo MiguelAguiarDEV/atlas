@@ -1,7 +1,15 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { TaskDetailPanel, type TaskData } from "@atlas/ui";
+import {
+  TaskDetailPanel,
+  FilterBar,
+  applyFilters,
+  DEFAULT_FILTERS,
+  type TaskData,
+  type TaskFilters,
+  type ProjectOption,
+} from "@atlas/ui";
 import { listTasks, updateTask } from "@/lib/api/tasks";
 import { listProjects, type ApiProject } from "@/lib/api/projects";
 import { toTaskData } from "@/lib/mappers";
@@ -123,6 +131,8 @@ function CompactCard({
 export default function BoardPage() {
   const isDesktop = useIsDesktop();
   const [tasks, setTasks] = useState<TaskData[]>([]);
+  const [projects, setProjects] = useState<ProjectOption[]>([]);
+  const [filters, setFilters] = useState<TaskFilters>({ ...DEFAULT_FILTERS });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [selectedTask, setSelectedTask] = useState<TaskData | null>(null);
@@ -138,10 +148,13 @@ export default function BoardPage() {
       ]);
 
       const pMap = new Map<number, ApiProject>();
+      const projectList: ProjectOption[] = [];
       for (const p of projectsRes.data ?? []) {
         pMap.set(p.id, p);
+        projectList.push({ id: p.id, name: p.name });
       }
 
+      setProjects(projectList);
       setTasks((tasksRes.data ?? []).map((t) => toTaskData(t, pMap)));
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to load tasks");
@@ -183,12 +196,14 @@ export default function BoardPage() {
     }
   };
 
-  // Group tasks by status
+  // Apply filters, then group by status
+  const filtered = applyFilters(tasks, filters);
+
   const grouped = new Map<string, TaskData[]>();
   for (const status of STATUSES) {
     grouped.set(status.key, []);
   }
-  for (const task of tasks) {
+  for (const task of filtered) {
     const key = task.status ?? "inbox";
     const list = grouped.get(key);
     if (list) {
@@ -262,6 +277,17 @@ export default function BoardPage() {
 
   return (
     <div style={{ padding: containerPadding }}>
+      {/* Filter bar above columns */}
+      <div style={{ padding: isDesktop ? "0 0 16px 0" : "12px 20px 12px 20px" }}>
+        <FilterBar
+          filters={filters}
+          onFiltersChange={setFilters}
+          projects={projects}
+          totalCount={tasks.length}
+          filteredCount={filtered.length}
+        />
+      </div>
+
       {/* Board container */}
       <div
         className="scrollbar-none"
@@ -272,7 +298,7 @@ export default function BoardPage() {
           overflowY: "hidden",
           scrollSnapType: isDesktop ? "none" : "x mandatory",
           WebkitOverflowScrolling: "touch",
-          minHeight: isDesktop ? "calc(100dvh - 100px)" : "calc(100dvh - 180px)",
+          minHeight: isDesktop ? "calc(100dvh - 160px)" : "calc(100dvh - 240px)",
         }}
       >
         {STATUSES.map((status, colIdx) => {

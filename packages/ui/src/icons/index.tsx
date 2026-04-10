@@ -236,3 +236,11 @@ export function ArrowLeftIcon({ size = 24, ...props }: IconProps) {
     </svg>
   );
 }
+
+export function ChevronDownIcon({ size = 24, ...props }: IconProps) {
+  return (
+    <svg {...defaultProps(size)} {...props}>
+      <path d="M6 9l6 6 6-6" />
+    </svg>
+  );
+}
