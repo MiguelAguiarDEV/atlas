@@ -24,17 +24,28 @@ export function BottomTabBar({
 }: BottomTabBarProps) {
   return (
     <nav
-      className={`fixed bottom-0 left-0 right-0 z-50 ${className}`}
+      className={className}
       style={{
+        position: "fixed",
+        bottom: 0,
+        left: 0,
+        right: 0,
+        zIndex: 50,
         paddingBottom: "env(safe-area-inset-bottom)",
-        background: "#111113",
-        borderTop: "1px solid rgba(255,255,255,0.12)",
-        boxShadow: "0 -4px 20px rgba(0,0,0,0.5)",
+        background: "var(--bg-elevated)",
+        borderTop: "1px solid var(--border)",
       }}
     >
       <div
-        className="mx-auto flex max-w-lg items-center justify-evenly"
-        style={{ height: "64px", padding: "0 8px" }}
+        style={{
+          display: "flex",
+          maxWidth: "512px",
+          margin: "0 auto",
+          alignItems: "center",
+          justifyContent: "space-evenly",
+          height: "64px",
+          padding: "0 8px",
+        }}
       >
         {tabs.map((tab) => {
           const isActive = activeTab === tab.key;
@@ -49,36 +60,51 @@ export function BottomTabBar({
                 }
               }}
               style={{
+                position: "relative",
+                display: "flex",
+                flexDirection: "column",
+                alignItems: "center",
+                justifyContent: "center",
+                gap: "4px",
                 minWidth: "56px",
                 minHeight: "48px",
+                padding: "6px 12px",
+                borderRadius: "10px",
+                textDecoration: "none",
+                color: isActive ? "var(--accent)" : "var(--text-secondary)",
+                transition: "all 200ms cubic-bezier(0.16,1,0.3,1)",
               }}
-              className={`relative flex flex-col items-center justify-center gap-1 rounded-[var(--radius-sm)] px-3 py-1.5 transition-all duration-200 ease-[cubic-bezier(0.16,1,0.3,1)] active:scale-[0.93] ${
-                isActive
-                  ? "text-[var(--accent)]"
-                  : "text-[var(--foreground-muted)] active:text-[var(--foreground)]"
-              }`}
               aria-current={isActive ? "page" : undefined}
             >
               <span
-                className="flex items-center justify-center"
-                style={{ width: "22px", height: "22px" }}
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  width: "22px",
+                  height: "22px",
+                }}
               >
                 {tab.icon}
               </span>
               <span
-                className="text-[12px]"
-                style={{ fontWeight: isActive ? 700 : 500 }}
+                style={{
+                  fontSize: "12px",
+                  fontWeight: isActive ? 700 : 500,
+                }}
               >
                 {tab.label}
               </span>
               {/* Active dot indicator below label */}
               {isActive && (
                 <span
-                  className="absolute rounded-full bg-[var(--accent)]"
                   style={{
+                    position: "absolute",
                     width: "4px",
                     height: "4px",
                     bottom: "2px",
+                    borderRadius: "9999px",
+                    background: "var(--accent)",
                     boxShadow: "0 0 6px var(--accent-glow)",
                   }}
                 />

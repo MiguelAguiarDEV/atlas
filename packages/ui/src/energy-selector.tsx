@@ -22,22 +22,22 @@ const levels: {
     value: "high",
     label: "High",
     icon: ZapIcon,
-    activeColor: "text-green-400",
-    activeBg: "bg-green-500/15",
+    activeColor: "var(--success)",
+    activeBg: "rgba(42,245,152,0.15)",
   },
   {
     value: "medium",
     label: "Medium",
     icon: BatteryIcon,
-    activeColor: "text-yellow-400",
-    activeBg: "bg-yellow-500/15",
+    activeColor: "var(--warning)",
+    activeBg: "rgba(245,165,36,0.15)",
   },
   {
     value: "low",
     label: "Low",
     icon: MoonIcon,
-    activeColor: "text-zinc-400",
-    activeBg: "bg-zinc-500/15",
+    activeColor: "var(--text-secondary)",
+    activeBg: "rgba(160,160,171,0.12)",
   },
 ];
 
@@ -57,28 +57,39 @@ export function EnergySelector({
 
   return (
     <div
-      className={`flex p-1 ${className}`}
+      className={className}
       style={{
-        background: "#111113",
-        border: "1px solid rgba(255,255,255,0.12)",
-        borderRadius: "12px",
-        boxShadow: "inset 0 1px 0 0 rgba(255,255,255,0.04)",
+        display: "flex",
+        padding: "4px",
+        background: "var(--bg-elevated)",
+        border: "1px solid var(--border)",
+        borderRadius: "10px",
       }}
     >
-      {levels.map(({ value, label, icon: Icon }) => {
+      {levels.map(({ value, label, icon: Icon, activeColor, activeBg }) => {
         const isActive = selected === value;
         return (
           <button
             key={value}
             onClick={() => handleSelect(value)}
             style={{
+              flex: 1,
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              gap: "8px",
               minHeight: "44px",
-              borderRadius: "10px",
+              borderRadius: "8px",
               padding: "12px 0",
-              background: isActive ? "#5E6AD2" : "transparent",
-              color: isActive ? "#FFFFFF" : "var(--foreground-muted)",
+              border: "none",
+              cursor: "pointer",
+              fontSize: "13px",
+              fontWeight: 500,
+              /* P1-04: smooth transition on bg and color */
+              transition: "background 200ms cubic-bezier(0.16,1,0.3,1), color 200ms cubic-bezier(0.16,1,0.3,1)",
+              background: isActive ? activeBg : "transparent",
+              color: isActive ? activeColor : "var(--text-secondary)",
             }}
-            className="flex flex-1 items-center justify-center gap-2 text-[13px] font-medium transition-all duration-200 ease-[cubic-bezier(0.16,1,0.3,1)] active:scale-[0.97]"
           >
             <Icon size={16} />
             {label}

@@ -55,10 +55,18 @@ export function TimerDisplay({ taskName, className = "" }: TimerDisplayProps) {
   const offset = circumference * (1 - progress);
 
   return (
-    <div className={`flex flex-col items-center gap-8 ${className}`}>
+    <div className={`flex flex-col items-center ${className}`} style={{ gap: "32px" }}>
       {/* Task name */}
       {taskName && (
-        <p className="max-w-[280px] truncate text-[13px] text-[var(--foreground-muted)]">
+        <p style={{
+          maxWidth: "280px",
+          overflow: "hidden",
+          textOverflow: "ellipsis",
+          whiteSpace: "nowrap",
+          fontSize: "12px",
+          fontWeight: 500,
+          color: "var(--text-secondary)",
+        }}>
           {taskName}
         </p>
       )}
@@ -103,14 +111,32 @@ export function TimerDisplay({ taskName, className = "" }: TimerDisplayProps) {
         {/* Time display */}
         <div className="absolute flex flex-col items-center gap-1">
           <span
-            className="text-[48px] font-light tracking-[0.04em] tabular-nums text-[var(--foreground)]"
-            style={{ fontFamily: "var(--font-mono)" }}
+            style={{
+              fontSize: "48px",
+              fontWeight: 300,
+              letterSpacing: "0.04em",
+              fontVariantNumeric: "tabular-nums",
+              color: "var(--text-primary)",
+              fontFamily: "var(--font-mono)",
+            }}
           >
             {formatTime(seconds)}
           </span>
           {running && (
-            <span className="flex items-center gap-1.5 text-[12px] text-[var(--accent)]">
-              <span className="h-1.5 w-1.5 rounded-full bg-[var(--accent)] pulsing-dot" />
+            <span style={{
+              display: "flex",
+              alignItems: "center",
+              gap: "6px",
+              fontSize: "12px",
+              fontWeight: 500,
+              color: "var(--accent)",
+            }}>
+              <span className="pulsing-dot" style={{
+                width: "6px",
+                height: "6px",
+                borderRadius: "9999px",
+                background: "var(--accent)",
+              }} />
               Focusing
             </span>
           )}
@@ -118,23 +144,50 @@ export function TimerDisplay({ taskName, className = "" }: TimerDisplayProps) {
       </div>
 
       {/* Controls */}
-      <div className="flex items-center gap-4">
+      <div className="flex items-center" style={{ gap: "16px" }}>
+        {/* P0-02: Large prominent play/stop button with inline styles */}
         <button
           onClick={running ? stop : start}
-          style={{width:"64px",height:"64px"}} className={`flex items-center justify-center rounded-full transition-all duration-200 ease-[cubic-bezier(0.16,1,0.3,1)] active:scale-[0.93] ${
-            running
-              ? "bg-[var(--danger)]/15 text-[var(--danger)] shadow-[0_0_20px_var(--danger-glow)]"
-              : "bg-[var(--accent)]/15 text-[var(--accent)] shadow-[0_0_20px_var(--accent-glow)]"
-          }`}
+          style={{
+            width: "72px",
+            height: "72px",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            borderRadius: "9999px",
+            border: "none",
+            cursor: "pointer",
+            transition: "all 200ms cubic-bezier(0.16,1,0.3,1)",
+            background: running
+              ? "rgba(229,72,77,0.15)"
+              : "var(--accent)",
+            color: running
+              ? "var(--destructive)"
+              : "white",
+            boxShadow: running
+              ? "0 0 20px var(--destructive-glow)"
+              : "0 0 24px var(--accent-glow)",
+          }}
           aria-label={running ? "Stop timer" : "Start timer"}
         >
-          {running ? <StopIcon size={26} /> : <PlayIcon size={26} />}
+          {running ? <StopIcon size={28} /> : <PlayIcon size={28} />}
         </button>
 
         {seconds > 0 && !running && (
           <button
             onClick={reset}
-            className="rounded-[var(--radius-sm)] px-4 py-2.5 text-[13px] font-medium text-[var(--foreground-muted)] transition-all duration-200 ease-[cubic-bezier(0.16,1,0.3,1)] hover:text-[var(--foreground)] hover:bg-[rgba(255,255,255,0.06)] active:scale-[0.97] min-h-[44px]"
+            style={{
+              padding: "10px 16px",
+              minHeight: "44px",
+              fontSize: "13px",
+              fontWeight: 500,
+              color: "var(--text-secondary)",
+              background: "transparent",
+              border: "none",
+              borderRadius: "8px",
+              cursor: "pointer",
+              transition: "all 200ms cubic-bezier(0.16,1,0.3,1)",
+            }}
           >
             Reset
           </button>

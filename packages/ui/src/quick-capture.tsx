@@ -21,16 +21,18 @@ export function QuickCapture({ onCapture, className = "" }: QuickCaptureProps) {
   };
 
   return (
-    <div
-      className={`fixed bottom-[calc(64px+env(safe-area-inset-bottom))] left-0 right-0 z-40 px-4 pb-2 ${className}`}
-    >
+    <div className={className} style={{ width: "100%" }}>
       <div
-        className="mx-auto flex max-w-lg items-center gap-2 rounded-[var(--radius)] px-4"
         style={{
-          background: "#111113",
-          border: "1px solid rgba(255,255,255,0.15)",
-          boxShadow: "0 -8px 32px rgba(0,0,0,0.6)",
+          display: "flex",
+          alignItems: "center",
+          gap: "8px",
+          background: "var(--bg-elevated)",
+          border: "1px solid var(--border)",
+          borderRadius: "10px",
+          padding: "0 12px",
           height: "56px",
+          transition: "border-color 200ms cubic-bezier(0.16,1,0.3,1)",
         }}
       >
         <input
@@ -42,13 +44,36 @@ export function QuickCapture({ onCapture, className = "" }: QuickCaptureProps) {
             if (e.key === "Enter") handleSubmit();
           }}
           placeholder="Quick capture..."
-          className="flex-1 min-h-[44px] bg-transparent text-[14px] text-[var(--foreground)] outline-none placeholder:text-[rgba(255,255,255,0.35)]"
+          style={{
+            flex: 1,
+            minHeight: "44px",
+            background: "transparent",
+            fontSize: "14px",
+            color: "var(--text-primary)",
+            border: "none",
+            outline: "none",
+          }}
         />
         <button
           onClick={handleSubmit}
           disabled={!value.trim()}
-          style={{ width: "44px", height: "44px", minWidth: "44px", minHeight: "44px" }}
-          className="flex items-center justify-center rounded-[var(--radius-xs)] bg-[var(--accent)] text-white transition-all duration-200 ease-[cubic-bezier(0.16,1,0.3,1)] active:scale-[0.90] disabled:opacity-30 shadow-[0_0_12px_var(--accent-glow)]"
+          style={{
+            width: "44px",
+            height: "44px",
+            minWidth: "44px",
+            minHeight: "44px",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            borderRadius: "8px",
+            background: "var(--accent)",
+            color: "white",
+            border: "none",
+            cursor: "pointer",
+            transition: "all 200ms cubic-bezier(0.16,1,0.3,1)",
+            opacity: value.trim() ? 1 : 0.3,
+            boxShadow: "0 0 12px var(--accent-glow)",
+          }}
           aria-label="Add task"
         >
           <PlusIcon size={16} />

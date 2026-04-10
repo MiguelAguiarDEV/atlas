@@ -1,7 +1,8 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { usePathname } from "next/navigation";
+import Link from "next/link";
 import {
   Sidebar,
   HomeIcon,
@@ -43,12 +44,40 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   const activeTab = getActiveTab(pathname);
   const isDesktop = useIsDesktop();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [menuMounted, setMenuMounted] = useState(false);
+  const [menuVisible, setMenuVisible] = useState(false);
+  const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const openMenu = () => {
+    setMenuMounted(true);
+    // Force a layout read so the transition fires
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        setMenuVisible(true);
+      });
+    });
+    setMobileMenuOpen(true);
+  };
+
+  const closeMenu = () => {
+    setMenuVisible(false);
+    setMobileMenuOpen(false);
+    timeoutRef.current = setTimeout(() => {
+      setMenuMounted(false);
+    }, 300);
+  };
+
+  useEffect(() => {
+    return () => {
+      if (timeoutRef.current) clearTimeout(timeoutRef.current);
+    };
+  }, []);
 
   if (isDesktop) {
     return (
       <div style={{ display: "flex", minHeight: "100dvh", background: "var(--bg-base)" }}>
         <Sidebar items={navItems} activeItem={activeTab} />
-        <main style={{ marginLeft: "240px", flex: 1, maxWidth: "960px", padding: "32px", margin: "0 auto 0 240px" }}>
+        <main style={{ marginLeft: "240px", flex: 1, padding: "32px 48px", maxWidth: "1100px" }}>
           {children}
         </main>
       </div>
@@ -62,56 +91,59 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
         position: "sticky", top: 0, zIndex: 50,
         display: "flex", alignItems: "center", justifyContent: "space-between",
         height: "56px", padding: "0 20px",
-        background: "#111113", borderBottom: "1px solid rgba(255,255,255,0.12)",
-        boxShadow: "0 4px 20px rgba(0,0,0,0.3)"
+        background: "var(--bg-elevated)", borderBottom: "1px solid var(--border)",
       }}>
-        <span style={{ fontSize: "18px", fontWeight: 700, color: "var(--accent)" }}>Atlas</span>
+        <span style={{ fontSize: "18px", fontWeight: 600, color: "var(--accent)" }}>Atlas</span>
         <button
-          onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-          style={{ width: "44px", height: "44px", display: "flex", alignItems: "center", justifyContent: "center", background: "none", border: "none", color: "var(--foreground)" }}
+          onClick={() => mobileMenuOpen ? closeMenu() : openMenu()}
+          style={{ width: "44px", height: "44px", display: "flex", alignItems: "center", justifyContent: "center", background: "none", border: "none", color: "var(--text-primary)" }}
         >
           <MenuIcon size={24} />
         </button>
       </header>
 
-      {/* Mobile slide-over menu */}
-      {mobileMenuOpen && (
+      {/* Mobile slide-over menu (P0-01: animated) */}
+      {menuMounted && (
         <>
           <div
-            onClick={() => setMobileMenuOpen(false)}
+            onClick={closeMenu}
+            className={`mobile-overlay ${menuVisible ? "mobile-overlay-visible" : ""}`}
             style={{
               position: "fixed", inset: 0, zIndex: 60,
               background: "rgba(0,0,0,0.6)",
             }}
           />
-          <nav style={{
-            position: "fixed", top: 0, left: 0, bottom: 0, zIndex: 70,
-            width: "280px", background: "#111113",
-            borderRight: "1px solid rgba(255,255,255,0.12)",
-            padding: "24px 0",
-            boxShadow: "4px 0 30px rgba(0,0,0,0.5)",
-          }}>
-            <div style={{ padding: "0 20px 24px", fontSize: "20px", fontWeight: 700, color: "var(--accent)" }}>Atlas</div>
+          <nav
+            className={`mobile-sidebar ${menuVisible ? "mobile-sidebar-visible" : ""}`}
+            style={{
+              position: "fixed", top: 0, left: 0, bottom: 0, zIndex: 70,
+              width: "280px", background: "var(--bg-deep)",
+              borderRight: "1px solid var(--border)",
+              padding: "24px 0",
+            }}
+          >
+            <div style={{ padding: "0 20px 24px", fontSize: "20px", fontWeight: 600, color: "var(--accent)" }}>Atlas</div>
             {navItems.map((item) => {
               const isActive = activeTab === item.key;
               return (
-                <a
+                <Link
                   key={item.key}
                   href={item.href}
-                  onClick={() => setMobileMenuOpen(false)}
+                  onClick={closeMenu}
                   style={{
                     display: "flex", alignItems: "center", gap: "12px",
                     padding: "0 20px", height: "48px",
-                    color: isActive ? "var(--accent)" : "var(--foreground-muted)",
-                    background: isActive ? "rgba(94,106,210,0.1)" : "transparent",
+                    color: isActive ? "var(--accent)" : "var(--text-secondary)",
+                    background: isActive ? "var(--accent-glow)" : "transparent",
                     borderLeft: isActive ? "3px solid var(--accent)" : "3px solid transparent",
                     fontSize: "15px", fontWeight: isActive ? 600 : 400,
                     textDecoration: "none",
+                    transition: "all 200ms var(--ease-out-expo)",
                   }}
                 >
                   {item.icon}
                   {item.label}
-                </a>
+                </Link>
               );
             })}
           </nav>

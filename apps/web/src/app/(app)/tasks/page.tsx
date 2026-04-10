@@ -26,7 +26,20 @@ function filterTasks(tasks: TaskData[], filter: Filter): TaskData[] {
   return tasks;
 }
 
+function useIsDesktop() {
+  const [isDesktop, setIsDesktop] = useState(false);
+  useEffect(() => {
+    const mq = window.matchMedia("(min-width: 768px)");
+    setIsDesktop(mq.matches);
+    const handler = (e: MediaQueryListEvent) => setIsDesktop(e.matches);
+    mq.addEventListener("change", handler);
+    return () => mq.removeEventListener("change", handler);
+  }, []);
+  return isDesktop;
+}
+
 export default function TasksPage() {
+  const isDesktop = useIsDesktop();
   const [activeFilter, setActiveFilter] = useState<Filter>("all");
   const [searchQuery, setSearchQuery] = useState("");
   const [tasks, setTasks] = useState<TaskData[]>([]);
@@ -83,17 +96,21 @@ export default function TasksPage() {
       : true,
   );
 
+  const containerStyle: React.CSSProperties = isDesktop
+    ? {}
+    : { padding: "24px 20px 120px 20px", maxWidth: "512px", margin: "0 auto" };
+
   // Loading state
   if (loading) {
     return (
-      <div className="mx-auto max-w-lg pt-safe" style={{ padding: "60px 20px 180px 20px" }}>
+      <div style={containerStyle}>
         <header style={{ paddingBottom: "16px" }}>
-          <h1 className="text-h1 text-[var(--foreground)]">Tasks</h1>
-          <p className="mt-1 text-[13px] text-[var(--foreground-muted)]">
+          <h1 className="text-h1" style={{ color: "var(--text-primary)" }}>Tasks</h1>
+          <p style={{ marginTop: "4px", fontSize: "12px", fontWeight: 500, color: "var(--text-secondary)" }}>
             Loading...
           </p>
         </header>
-        <div className="flex flex-col" style={{ gap: "12px" }}>
+        <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
           {[1, 2, 3, 4].map((i) => (
             <div
               key={i}
@@ -106,18 +123,37 @@ export default function TasksPage() {
     );
   }
 
-  // Error state
+  // Error state (P1-09)
   if (error) {
     return (
-      <div className="mx-auto max-w-lg pt-safe" style={{ padding: "60px 20px 180px 20px" }}>
+      <div style={containerStyle}>
         <header style={{ paddingBottom: "16px" }}>
-          <h1 className="text-h1 text-[var(--foreground)]">Tasks</h1>
+          <h1 className="text-h1" style={{ color: "var(--text-primary)" }}>Tasks</h1>
         </header>
-        <div className="glass-elevated px-4 py-8 text-center">
-          <p className="text-[13px] text-red-400">{error}</p>
+        <div className="glass-elevated" style={{ padding: "32px 16px", textAlign: "center" }}>
+          <p style={{ fontSize: "14px", color: "var(--text-secondary)", marginBottom: "8px" }}>
+            Something went wrong loading your tasks.
+          </p>
+          <p style={{ fontSize: "12px", color: "var(--text-tertiary)", marginBottom: "16px" }}>
+            {error}
+          </p>
           <button
             onClick={fetchData}
-            className="mt-4 inline-flex items-center justify-center rounded-[var(--radius)] bg-[var(--accent)] px-5 py-2.5 text-[13px] font-medium text-white shadow-[0_0_20px_var(--accent-glow)] transition-all duration-200 ease-[cubic-bezier(0.16,1,0.3,1)] active:scale-[0.97]"
+            style={{
+              display: "inline-flex",
+              alignItems: "center",
+              justifyContent: "center",
+              padding: "10px 20px",
+              fontSize: "13px",
+              fontWeight: 500,
+              color: "white",
+              background: "var(--accent)",
+              border: "none",
+              borderRadius: "10px",
+              cursor: "pointer",
+              boxShadow: "0 0 20px var(--accent-glow)",
+              transition: "all 200ms cubic-bezier(0.16,1,0.3,1)",
+            }}
           >
             Retry
           </button>
@@ -129,88 +165,99 @@ export default function TasksPage() {
   /* Shared pieces */
   const headerBlock = (
     <header className="animate-fade-in-up" style={{ paddingBottom: "16px" }}>
-      <div className="flex items-baseline justify-between">
-        <h1 className="text-h1 text-[var(--foreground)]">Tasks</h1>
-        <span className="text-[13px] text-[var(--foreground-muted)] tabular-nums">
+      <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between" }}>
+        <h1 className="text-h1" style={{ color: "var(--text-primary)" }}>Tasks</h1>
+        <span style={{ fontSize: "12px", fontWeight: 500, color: "var(--text-secondary)", fontVariantNumeric: "tabular-nums" }}>
           {tasks.length} total
         </span>
       </div>
     </header>
   );
 
-  const searchBar = (
-    <div className="pb-4 animate-fade-in-up" style={{ animationDelay: "50ms" }}>
-      <div
-        className="flex items-center gap-2.5 rounded-[var(--radius)] px-3.5 py-2.5"
+  const searchInput = (
+    <div
+      style={{
+        display: "flex",
+        alignItems: "center",
+        gap: "10px",
+        background: "var(--bg-elevated)",
+        border: "1px solid var(--border)",
+        borderRadius: "10px",
+        padding: "0 14px",
+        minHeight: "44px",
+        flex: isDesktop ? "0 0 320px" : undefined,
+      }}
+    >
+      <SearchIcon
+        size={16}
+        style={{ flexShrink: 0, color: "var(--text-secondary)" }}
+      />
+      <input
+        type="text"
+        value={searchQuery}
+        onChange={(e) => setSearchQuery(e.target.value)}
+        placeholder="Search tasks..."
         style={{
-          background: "var(--surface)",
-          border: "1px solid var(--border)",
-          boxShadow: "inset 0 1px 0 0 rgba(255,255,255,0.04)",
+          flex: 1,
           minHeight: "44px",
+          background: "transparent",
+          fontSize: "14px",
+          color: "var(--text-primary)",
+          border: "none",
+          outline: "none",
+        }}
+      />
+    </div>
+  );
+
+  const filterPills = FILTERS.map((f) => {
+    const count = filterTasks(tasks, f.key).length;
+    const isActive = activeFilter === f.key;
+    return (
+      <button
+        key={f.key}
+        onClick={() => setActiveFilter(f.key)}
+        style={{
+          flexShrink: 0,
+          padding: "8px 16px",
+          minHeight: "44px",
+          fontSize: "13px",
+          fontWeight: 500,
+          borderRadius: "9999px",
+          border: isActive ? "1px solid var(--border-hover)" : "1px solid transparent",
+          background: isActive ? "var(--bg-elevated)" : "transparent",
+          color: isActive ? "var(--text-primary)" : "var(--text-secondary)",
+          cursor: "pointer",
+          transition: "all 200ms cubic-bezier(0.16,1,0.3,1)",
+          position: "relative" as const,
         }}
       >
-        <SearchIcon
-          size={16}
-          className="shrink-0 text-[var(--foreground-muted)]"
-        />
-        <input
-          type="text"
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-          placeholder="Search tasks..."
-          className="flex-1 bg-transparent text-[13px] text-[var(--foreground)] outline-none placeholder:text-[var(--foreground-muted)]"
-          style={{ minHeight: "44px" }}
-        />
-      </div>
-    </div>
-  );
-
-  const filterPills = (
-    <div
-      className="flex gap-2 overflow-x-auto pb-5 scrollbar-none animate-fade-in-up"
-      style={{ animationDelay: "100ms" }}
-    >
-      {FILTERS.map((f) => {
-        const count = filterTasks(tasks, f.key).length;
-        const isActive = activeFilter === f.key;
-        return (
-          <button
-            key={f.key}
-            onClick={() => setActiveFilter(f.key)}
-            className={`relative shrink-0 rounded-[var(--radius-full)] px-4 py-2 text-[13px] font-medium transition-all duration-200 ease-[cubic-bezier(0.16,1,0.3,1)] active:scale-[0.97] ${
-              isActive
-                ? "bg-[var(--surface)] text-[var(--foreground)] border border-[var(--border-highlight)]"
-                : "text-[var(--foreground-muted)] hover:text-[var(--foreground)] border border-transparent"
-            }`}
-            style={{
-              minHeight: "44px",
-              ...(isActive
-                ? { boxShadow: "inset 0 1px 0 0 rgba(255,255,255,0.06)" }
-                : {}),
-            }}
-          >
-            {f.label}
-            <span className="ml-1.5 text-[12px] opacity-60 tabular-nums">
-              {count}
-            </span>
-            {isActive && (
-              <span className="absolute -bottom-1 left-1/2 h-[2px] w-4 -translate-x-1/2 rounded-full bg-[var(--accent)] shadow-[0_0_6px_var(--accent-glow)]" />
-            )}
-          </button>
-        );
-      })}
-    </div>
-  );
+        {f.label}
+        <span style={{ marginLeft: "6px", fontSize: "12px", opacity: 0.6, fontVariantNumeric: "tabular-nums" }}>
+          {count}
+        </span>
+      </button>
+    );
+  });
 
   const emptyState = (
-    <div className="flex flex-col items-center justify-center py-20 text-center animate-fade-in-up">
-      <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-[var(--surface)]">
-        <ListIcon size={24} className="text-[var(--foreground-muted)]" />
+    <div className="animate-fade-in" style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "80px 0", textAlign: "center" }}>
+      <div style={{
+        width: "56px",
+        height: "56px",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        borderRadius: "9999px",
+        background: "var(--bg-elevated)",
+        marginBottom: "16px",
+      }}>
+        <ListIcon size={24} style={{ color: "var(--text-secondary)" }} />
       </div>
-      <p className="text-h3 text-[var(--foreground-muted)]">
+      <p style={{ fontSize: "14px", fontWeight: 600, color: "var(--text-secondary)" }}>
         No tasks here
       </p>
-      <p className="mt-1.5 max-w-[240px] text-[13px] text-[var(--foreground-muted)] opacity-60">
+      <p style={{ marginTop: "6px", maxWidth: "240px", fontSize: "12px", color: "var(--text-tertiary)" }}>
         {activeFilter === "done"
           ? "Nothing completed yet. Keep going!"
           : searchQuery
@@ -235,104 +282,40 @@ export default function TasksPage() {
     </div>
   ));
 
+  /* P1-06: Single component tree that adapts via isDesktop */
   return (
-    <>
-      {/* Mobile layout */}
-      <div className="mobile-only" style={{ display: "block" }}>
-        <div className="mx-auto max-w-lg pt-safe" style={{ padding: "60px 20px 180px 20px" }}>
-          {headerBlock}
-          {searchBar}
+    <div className="animate-fade-in" style={containerStyle}>
+      {headerBlock}
+
+      {/* Toolbar: search + filters */}
+      <div
+        className="animate-fade-in-up"
+        style={{
+          display: "flex",
+          flexDirection: isDesktop ? "row" : "column",
+          alignItems: isDesktop ? "center" : "stretch",
+          gap: isDesktop ? "16px" : "12px",
+          paddingBottom: "24px",
+        }}
+      >
+        {searchInput}
+        <div className="scrollbar-none" style={{ display: "flex", gap: "8px", overflowX: "auto" }}>
           {filterPills}
-          <div className="flex flex-col" style={{ gap: "12px" }}>
-            {filtered.length === 0 ? emptyState : taskCards}
-          </div>
         </div>
       </div>
 
-      {/* Desktop layout */}
-      <div className="desktop-only" style={{ flexDirection: "column" }}>
-        {headerBlock}
-
-        {/* Horizontal toolbar: search + filters */}
-        <div
-          className="animate-fade-in-up"
-          style={{
-            display: "flex",
-            alignItems: "center",
-            gap: "16px",
-            paddingBottom: "24px",
-            animationDelay: "50ms",
-          }}
-        >
-          <div
-            className="flex items-center gap-2.5 rounded-[var(--radius)] px-3.5 py-2.5"
-            style={{
-              background: "var(--surface)",
-              border: "1px solid var(--border)",
-              boxShadow: "inset 0 1px 0 0 rgba(255,255,255,0.04)",
-              minHeight: "44px",
-              flex: "0 0 320px",
-            }}
-          >
-            <SearchIcon
-              size={16}
-              className="shrink-0 text-[var(--foreground-muted)]"
-            />
-            <input
-              type="text"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Search tasks..."
-              className="flex-1 bg-transparent text-[13px] text-[var(--foreground)] outline-none placeholder:text-[var(--foreground-muted)]"
-              style={{ minHeight: "44px" }}
-            />
-          </div>
-
-          <div className="flex gap-2">
-            {FILTERS.map((f) => {
-              const count = filterTasks(tasks, f.key).length;
-              const isActive = activeFilter === f.key;
-              return (
-                <button
-                  key={f.key}
-                  onClick={() => setActiveFilter(f.key)}
-                  className={`relative shrink-0 rounded-[var(--radius-full)] px-4 py-2 text-[13px] font-medium transition-all duration-200 ease-[cubic-bezier(0.16,1,0.3,1)] active:scale-[0.97] ${
-                    isActive
-                      ? "bg-[var(--surface)] text-[var(--foreground)] border border-[var(--border-highlight)]"
-                      : "text-[var(--foreground-muted)] hover:text-[var(--foreground)] border border-transparent"
-                  }`}
-                  style={{
-                    minHeight: "44px",
-                    ...(isActive
-                      ? { boxShadow: "inset 0 1px 0 0 rgba(255,255,255,0.06)" }
-                      : {}),
-                  }}
-                >
-                  {f.label}
-                  <span className="ml-1.5 text-[12px] opacity-60 tabular-nums">
-                    {count}
-                  </span>
-                </button>
-              );
-            })}
-          </div>
+      {/* Task list */}
+      {filtered.length === 0 ? (
+        emptyState
+      ) : isDesktop ? (
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: "12px" }}>
+          {taskCards}
         </div>
-
-        {/* Task list - two column grid on desktop */}
-        {filtered.length === 0 ? (
-          emptyState
-        ) : (
-          <div
-            style={{
-              display: "grid",
-              gridTemplateColumns: "repeat(2, 1fr)",
-              gap: "12px",
-            }}
-          >
-            {taskCards}
-          </div>
-        )}
-      </div>
-    </>
+      ) : (
+        <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
+          {taskCards}
+        </div>
+      )}
+    </div>
   );
 }

@@ -30,9 +30,22 @@ function formatDate(): string {
   });
 }
 
+function useIsDesktop() {
+  const [isDesktop, setIsDesktop] = useState(false);
+  useEffect(() => {
+    const mq = window.matchMedia("(min-width: 768px)");
+    setIsDesktop(mq.matches);
+    const handler = (e: MediaQueryListEvent) => setIsDesktop(e.matches);
+    mq.addEventListener("change", handler);
+    return () => mq.removeEventListener("change", handler);
+  }, []);
+  return isDesktop;
+}
+
 export default function TodayPage() {
-  const { text: greeting, icon: GreetingIcon } = getGreeting();
+  const { text: greeting } = getGreeting();
   const dateStr = formatDate();
+  const isDesktop = useIsDesktop();
   const [tasks, setTasks] = useState<TaskData[]>([]);
   const [habits, setHabits] = useState<ApiHabit[]>([]);
   const [completedHabits, setCompletedHabits] = useState<Set<number>>(
@@ -130,14 +143,14 @@ export default function TodayPage() {
   // Loading state
   if (loading) {
     return (
-      <div className="mx-auto max-w-lg pt-safe" style={{ padding: "60px 20px 180px 20px" }}>
+      <div style={{ padding: isDesktop ? "0" : "24px 20px 120px 20px", maxWidth: isDesktop ? "none" : "512px", margin: "0 auto" }}>
         <header style={{ paddingBottom: "24px" }}>
-          <h1 className="text-h1 text-[var(--foreground)]">{greeting}</h1>
-          <p className="mt-1 text-[13px] text-[var(--foreground-muted)]">
+          <h1 className="text-h1" style={{ color: "var(--text-primary)" }}>{greeting}</h1>
+          <p style={{ marginTop: "4px", fontSize: "12px", fontWeight: 500, color: "var(--text-secondary)" }}>
             {dateStr}
           </p>
         </header>
-        <div className="flex flex-col" style={{ gap: "12px" }}>
+        <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
           {[1, 2, 3].map((i) => (
             <div
               key={i}
@@ -150,21 +163,40 @@ export default function TodayPage() {
     );
   }
 
-  // Error state
+  // Error state (P1-09)
   if (error) {
     return (
-      <div className="mx-auto max-w-lg pt-safe" style={{ padding: "60px 20px 180px 20px" }}>
+      <div style={{ padding: isDesktop ? "0" : "24px 20px 120px 20px", maxWidth: isDesktop ? "none" : "512px", margin: "0 auto" }}>
         <header style={{ paddingBottom: "24px" }}>
-          <h1 className="text-h1 text-[var(--foreground)]">{greeting}</h1>
-          <p className="mt-1 text-[13px] text-[var(--foreground-muted)]">
+          <h1 className="text-h1" style={{ color: "var(--text-primary)" }}>{greeting}</h1>
+          <p style={{ marginTop: "4px", fontSize: "12px", fontWeight: 500, color: "var(--text-secondary)" }}>
             {dateStr}
           </p>
         </header>
-        <div className="glass-elevated px-4 py-8 text-center">
-          <p className="text-[13px] text-red-400">{error}</p>
+        <div className="glass-elevated" style={{ padding: "32px 16px", textAlign: "center" }}>
+          <p style={{ fontSize: "14px", color: "var(--text-secondary)", marginBottom: "8px" }}>
+            Something went wrong loading your data.
+          </p>
+          <p style={{ fontSize: "12px", color: "var(--text-tertiary)", marginBottom: "16px" }}>
+            {error}
+          </p>
           <button
             onClick={fetchData}
-            className="mt-4 inline-flex items-center justify-center rounded-[var(--radius)] bg-[var(--accent)] px-5 py-2.5 text-[13px] font-medium text-white shadow-[0_0_20px_var(--accent-glow)] transition-all duration-200 ease-[cubic-bezier(0.16,1,0.3,1)] active:scale-[0.97]"
+            style={{
+              display: "inline-flex",
+              alignItems: "center",
+              justifyContent: "center",
+              padding: "10px 20px",
+              fontSize: "13px",
+              fontWeight: 500,
+              color: "white",
+              background: "var(--accent)",
+              border: "none",
+              borderRadius: "10px",
+              cursor: "pointer",
+              boxShadow: "0 0 20px var(--accent-glow)",
+              transition: "all 200ms cubic-bezier(0.16,1,0.3,1)",
+            }}
           >
             Retry
           </button>
@@ -173,44 +205,56 @@ export default function TodayPage() {
     );
   }
 
-  /* Shared content sections */
-  const headerSection = (
-    <header className="animate-fade-in-up" style={{ paddingBottom: "24px" }}>
-      <h1 className="text-h1 text-[var(--foreground)]">{greeting}</h1>
-      <p className="mt-1 text-[13px] text-[var(--foreground-muted)]">
-        {dateStr}
-      </p>
-    </header>
+  /* --- Section header helper (P1-05) --- */
+  const SectionHead = ({ title, count }: { title: string; count?: number }) => (
+    <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "12px" }}>
+      <h2 style={{ fontSize: "14px", fontWeight: 600, color: "var(--text-primary)" }}>
+        {title}
+        {count !== undefined && (
+          <span style={{
+            marginLeft: "8px",
+            fontSize: "12px",
+            fontWeight: 600,
+            background: "var(--accent-glow)",
+            color: "var(--accent)",
+            padding: "2px 8px",
+            borderRadius: "9999px",
+          }}>
+            {count}
+          </span>
+        )}
+      </h2>
+    </div>
   );
 
   const tasksSection = (
-    <section className="animate-fade-in-up" style={{ animationDelay: "100ms", paddingBottom: "32px" }}>
-      <div className="flex items-center justify-between" style={{ marginBottom: "12px" }}>
-        <h2 className="text-[15px] font-semibold text-[var(--foreground)]">
+    <section className="animate-fade-in" style={{ paddingBottom: "32px" }}>
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "12px" }}>
+        <h2 style={{ fontSize: "14px", fontWeight: 600, color: "var(--text-primary)" }}>
           Tasks
-          <span
-            className="ml-2 text-[12px] font-semibold"
-            style={{
-              background: "rgba(94,106,210,0.15)",
-              color: "var(--accent)",
-              padding: "2px 8px",
-              borderRadius: "9999px",
-            }}
-          >
+          <span style={{
+            marginLeft: "8px",
+            fontSize: "12px",
+            fontWeight: 600,
+            background: "var(--accent-glow)",
+            color: "var(--accent)",
+            padding: "2px 8px",
+            borderRadius: "9999px",
+          }}>
             {activeTasks.length}
           </span>
         </h2>
         {totalEstimate > 0 && (
-          <span className="text-[12px] text-[var(--foreground-muted)]">
+          <span style={{ fontSize: "12px", color: "var(--text-secondary)" }}>
             ~{totalEstimate >= 60 ? `${Math.round(totalEstimate / 60)}h` : `${totalEstimate}m`}
           </span>
         )}
       </div>
-      <div className="flex flex-col" style={{ gap: "12px" }}>
+      <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
         {tasks.length === 0 ? (
-          <div className="glass-elevated px-4 py-10 text-center">
-            <p className="text-[13px] text-[var(--foreground-muted)]">
-              No tasks yet. Use quick capture below to add one.
+          <div className="glass-elevated" style={{ padding: "40px 16px", textAlign: "center" }}>
+            <p style={{ fontSize: "14px", color: "var(--text-secondary)" }}>
+              No tasks yet. Use quick capture to add one.
             </p>
           </div>
         ) : (
@@ -229,35 +273,22 @@ export default function TodayPage() {
   );
 
   const energySection = (
-    <section className="animate-fade-in-up" style={{ animationDelay: "50ms", paddingBottom: "32px" }}>
+    <section className="animate-fade-in" style={{ paddingBottom: "32px" }}>
       <EnergySelector />
     </section>
   );
 
   const habitsSection = (
-    <section className="animate-fade-in-up" style={{ animationDelay: "200ms" }}>
-      <h2 className="text-[15px] font-semibold text-[var(--foreground)]" style={{ marginBottom: "12px" }}>
-        Habits
-        <span
-          className="ml-2 text-[12px] font-semibold"
-          style={{
-            background: "rgba(94,106,210,0.15)",
-            color: "var(--accent)",
-            padding: "2px 8px",
-            borderRadius: "9999px",
-          }}
-        >
-          {habits.length}
-        </span>
-      </h2>
+    <section className="animate-fade-in" style={{ paddingBottom: "32px" }}>
+      <SectionHead title="Habits" count={habits.length} />
       {habits.length === 0 ? (
-        <div className="glass-elevated px-4 py-8 text-center">
-          <p className="text-[13px] text-[var(--foreground-muted)]">
+        <div className="glass-elevated" style={{ padding: "32px 16px", textAlign: "center" }}>
+          <p style={{ fontSize: "14px", color: "var(--text-secondary)" }}>
             No habits configured yet.
           </p>
         </div>
       ) : (
-        <div className="flex flex-col" style={{ gap: "12px" }}>
+        <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
           {habits.map((habit) => (
             <HabitCheck
               key={habit.id}
@@ -273,54 +304,44 @@ export default function TodayPage() {
   );
 
   const statsSection = (
-    <section className="animate-fade-in-up" style={{ animationDelay: "250ms", paddingTop: "24px" }}>
-      <h2 className="text-[15px] font-semibold text-[var(--foreground)]" style={{ marginBottom: "12px" }}>
-        Overview
-      </h2>
-      <div className="grid grid-cols-2 gap-3">
-        <div className="glass-elevated flex flex-col items-center gap-1 px-4 py-4">
-          <span className="text-[20px] font-semibold text-[var(--foreground)] tabular-nums">{activeTasks.length}</span>
-          <span className="text-[12px] text-[var(--foreground-muted)]">Active tasks</span>
+    <section className="animate-fade-in">
+      <SectionHead title="Overview" />
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px" }}>
+        <div className="glass-elevated" style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "4px", padding: "16px" }}>
+          <span style={{ fontSize: "20px", fontWeight: 600, color: "var(--text-primary)", fontVariantNumeric: "tabular-nums" }}>{activeTasks.length}</span>
+          <span style={{ fontSize: "12px", fontWeight: 500, color: "var(--text-secondary)" }}>Active tasks</span>
         </div>
-        <div className="glass-elevated flex flex-col items-center gap-1 px-4 py-4">
-          <span className="text-[20px] font-semibold text-[var(--foreground)] tabular-nums">
+        <div className="glass-elevated" style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "4px", padding: "16px" }}>
+          <span style={{ fontSize: "20px", fontWeight: 600, color: "var(--text-primary)", fontVariantNumeric: "tabular-nums" }}>
             {totalEstimate >= 60 ? `${Math.round(totalEstimate / 60)}h` : `${totalEstimate}m`}
           </span>
-          <span className="text-[12px] text-[var(--foreground-muted)]">Estimated</span>
+          <span style={{ fontSize: "12px", fontWeight: 500, color: "var(--text-secondary)" }}>Estimated</span>
         </div>
       </div>
     </section>
   );
 
-  return (
-    <>
-      {/* Mobile layout */}
-      <div className="mobile-only" style={{ display: "block" }}>
-        <div className="mx-auto max-w-lg pt-safe" style={{ padding: "60px 20px 180px 20px" }}>
-          {headerSection}
-          {energySection}
-          {tasksSection}
-          {habitsSection}
-          <QuickCapture onCapture={handleCapture} />
-        </div>
-      </div>
+  /* P1-06: Single component tree adapts via isDesktop */
+  if (isDesktop) {
+    return (
+      <div className="animate-fade-in">
+        <header className="animate-fade-in-up" style={{ paddingBottom: "24px" }}>
+          <h1 className="text-h1" style={{ color: "var(--text-primary)" }}>{greeting}</h1>
+          <p style={{ marginTop: "4px", fontSize: "12px", fontWeight: 500, color: "var(--text-secondary)" }}>
+            {dateStr}
+          </p>
+        </header>
 
-      {/* Desktop layout - two columns */}
-      <div className="desktop-only" style={{ flexDirection: "column" }}>
-        {headerSection}
-
-        {/* Quick capture bar - full width on desktop */}
+        {/* Quick capture inline at top */}
         <div style={{ paddingBottom: "32px" }}>
           <QuickCapture onCapture={handleCapture} />
         </div>
 
         {/* Two column layout */}
         <div style={{ display: "flex", gap: "32px" }}>
-          {/* Left column - 60% - tasks */}
           <div style={{ flex: "0 0 60%", minWidth: 0 }}>
             {tasksSection}
           </div>
-          {/* Right column - 40% - energy, habits, stats */}
           <div style={{ flex: "0 0 calc(40% - 32px)", minWidth: 0 }}>
             {energySection}
             {habitsSection}
@@ -328,6 +349,26 @@ export default function TodayPage() {
           </div>
         </div>
       </div>
-    </>
+    );
+  }
+
+  return (
+    <div className="animate-fade-in" style={{ padding: "24px 20px 120px 20px", maxWidth: "512px", margin: "0 auto" }}>
+      <header className="animate-fade-in-up" style={{ paddingBottom: "24px" }}>
+        <h1 className="text-h1" style={{ color: "var(--text-primary)" }}>{greeting}</h1>
+        <p style={{ marginTop: "4px", fontSize: "12px", fontWeight: 500, color: "var(--text-secondary)" }}>
+          {dateStr}
+        </p>
+      </header>
+
+      {/* Quick capture sticky at top of content (P0-03) */}
+      <div style={{ paddingBottom: "24px" }}>
+        <QuickCapture onCapture={handleCapture} />
+      </div>
+
+      {energySection}
+      {tasksSection}
+      {habitsSection}
+    </div>
   );
 }

@@ -9,7 +9,20 @@ import {
 } from "@/lib/api/time-entries";
 import { formatDuration } from "@/lib/mappers";
 
+function useIsDesktop() {
+  const [isDesktop, setIsDesktop] = useState(false);
+  useEffect(() => {
+    const mq = window.matchMedia("(min-width: 768px)");
+    setIsDesktop(mq.matches);
+    const handler = (e: MediaQueryListEvent) => setIsDesktop(e.matches);
+    mq.addEventListener("change", handler);
+    return () => mq.removeEventListener("change", handler);
+  }, []);
+  return isDesktop;
+}
+
 export default function TimerPage() {
+  const isDesktop = useIsDesktop();
   const [tasks, setTasks] = useState<ApiTask[]>([]);
   const [recentEntries, setRecentEntries] = useState<ApiTimeEntry[]>([]);
   const [loading, setLoading] = useState(true);
@@ -53,35 +66,58 @@ export default function TimerPage() {
     0,
   );
 
+  const containerStyle: React.CSSProperties = isDesktop
+    ? {}
+    : { padding: "32px 16px 120px 16px", maxWidth: "512px", margin: "0 auto" };
+
   // Loading state
   if (loading) {
     return (
-      <div className="mx-auto max-w-lg px-4 pt-safe">
-        <header className="pb-6 pt-8">
-          <h1 className="text-h1 text-[var(--foreground)]">Timer</h1>
-          <p className="mt-1 text-[13px] text-[var(--foreground-muted)]">
+      <div style={containerStyle}>
+        <header style={{ paddingBottom: "24px" }}>
+          <h1 className="text-h1" style={{ color: "var(--text-primary)" }}>Timer</h1>
+          <p style={{ marginTop: "4px", fontSize: "12px", fontWeight: 500, color: "var(--text-secondary)" }}>
             Loading...
           </p>
         </header>
-        <div className="flex flex-col items-center gap-6">
-          <div className="rounded-full skeleton" style={{ width: "264px", height: "264px" }} />
+        <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "24px" }}>
+          <div className="skeleton" style={{ width: "264px", height: "264px", borderRadius: "9999px" }} />
         </div>
       </div>
     );
   }
 
-  // Error state
+  // Error state (P1-09)
   if (error) {
     return (
-      <div className="mx-auto max-w-lg px-4 pt-safe">
-        <header className="pb-6 pt-8">
-          <h1 className="text-h1 text-[var(--foreground)]">Timer</h1>
+      <div style={containerStyle}>
+        <header style={{ paddingBottom: "24px" }}>
+          <h1 className="text-h1" style={{ color: "var(--text-primary)" }}>Timer</h1>
         </header>
-        <div className="glass-elevated px-4 py-8 text-center">
-          <p className="text-[13px] text-red-400">{error}</p>
+        <div className="glass-elevated" style={{ padding: "32px 16px", textAlign: "center" }}>
+          <p style={{ fontSize: "14px", color: "var(--text-secondary)", marginBottom: "8px" }}>
+            Something went wrong loading timer data.
+          </p>
+          <p style={{ fontSize: "12px", color: "var(--text-tertiary)", marginBottom: "16px" }}>
+            {error}
+          </p>
           <button
             onClick={fetchData}
-            className="mt-4 inline-flex items-center justify-center rounded-[var(--radius)] bg-[var(--accent)] px-5 py-2.5 text-[13px] font-medium text-white shadow-[0_0_20px_var(--accent-glow)] transition-all duration-200 ease-[cubic-bezier(0.16,1,0.3,1)] active:scale-[0.97]"
+            style={{
+              display: "inline-flex",
+              alignItems: "center",
+              justifyContent: "center",
+              padding: "10px 20px",
+              fontSize: "13px",
+              fontWeight: 500,
+              color: "white",
+              background: "var(--accent)",
+              border: "none",
+              borderRadius: "10px",
+              cursor: "pointer",
+              boxShadow: "0 0 20px var(--accent-glow)",
+              transition: "all 200ms cubic-bezier(0.16,1,0.3,1)",
+            }}
           >
             Retry
           </button>
@@ -92,31 +128,50 @@ export default function TimerPage() {
 
   /* Shared sections */
   const statsCards = (
-    <div className="grid grid-cols-2 gap-3">
+    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px" }}>
       {/* Focus time card */}
-      <div className="glass-elevated flex flex-col items-center gap-2 px-4 py-5">
+      <div className="glass-elevated" style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "8px", padding: "20px 16px" }}>
         <div
-          className="flex h-10 w-10 items-center justify-center rounded-full"
-          style={{ background: "var(--accent-subtle)" }}
+          style={{
+            width: "40px",
+            height: "40px",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            borderRadius: "9999px",
+            background: "var(--accent-subtle)",
+          }}
         >
-          <ClockIcon size={18} className="text-[var(--accent)]" />
+          <ClockIcon size={18} style={{ color: "var(--accent)" }} />
         </div>
-        <span className="text-[12px] text-[var(--foreground-muted)]">
+        <span style={{ fontSize: "12px", fontWeight: 500, color: "var(--text-secondary)" }}>
           Focus time
         </span>
         <span
-          className="text-[20px] font-semibold tabular-nums text-[var(--foreground)]"
-          style={{ fontFamily: "var(--font-mono)" }}
+          style={{
+            fontSize: "20px",
+            fontWeight: 600,
+            fontVariantNumeric: "tabular-nums",
+            color: "var(--text-primary)",
+            fontFamily: "var(--font-mono)",
+          }}
         >
           {todayTotalSecs > 0 ? formatDuration(todayTotalSecs) : "0m"}
         </span>
       </div>
 
       {/* Sessions card */}
-      <div className="glass-elevated flex flex-col items-center gap-2 px-4 py-5">
+      <div className="glass-elevated" style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "8px", padding: "20px 16px" }}>
         <div
-          className="flex h-10 w-10 items-center justify-center rounded-full"
-          style={{ background: "rgba(34,197,94,0.12)" }}
+          style={{
+            width: "40px",
+            height: "40px",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            borderRadius: "9999px",
+            background: "rgba(42,245,152,0.12)",
+          }}
         >
           <svg
             width="18"
@@ -131,12 +186,17 @@ export default function TimerPage() {
             <path d="M12 20V10M18 20V4M6 20v-4" />
           </svg>
         </div>
-        <span className="text-[12px] text-[var(--foreground-muted)]">
+        <span style={{ fontSize: "12px", fontWeight: 500, color: "var(--text-secondary)" }}>
           Sessions
         </span>
         <span
-          className="text-[20px] font-semibold tabular-nums text-[var(--foreground)]"
-          style={{ fontFamily: "var(--font-mono)" }}
+          style={{
+            fontSize: "20px",
+            fontWeight: 600,
+            fontVariantNumeric: "tabular-nums",
+            color: "var(--text-primary)",
+            fontFamily: "var(--font-mono)",
+          }}
         >
           {todayEntries.length}
         </span>
@@ -144,184 +204,153 @@ export default function TimerPage() {
     </div>
   );
 
-  const recentSessionsList = recentEntries.map((entry, i) => {
-    const task = tasks.find((t) => t.id === entry.task_id);
-    const time = new Date(entry.started_at).toLocaleTimeString(
-      "en-US",
-      { hour: "numeric", minute: "2-digit" },
-    );
-    return (
-      <div
-        key={entry.id}
-        className="flex items-center gap-3 rounded-[var(--radius-sm)] px-4 py-3 transition-all duration-200 ease-[cubic-bezier(0.16,1,0.3,1)] hover:bg-[var(--surface)] animate-fade-in-up"
-        style={{ animationDelay: `${200 + i * 50}ms` }}
-      >
-        <div className="h-2 w-2 shrink-0 rounded-full bg-[var(--accent)]" />
-        <div className="flex min-w-0 flex-1 flex-col">
-          <span className="truncate text-[13px] text-[var(--foreground)]">
-            {task?.title ?? "Unknown task"}
-          </span>
-          <span className="text-[12px] text-[var(--foreground-muted)]">
-            {time}
-          </span>
-        </div>
-        <span
-          className="shrink-0 text-[13px] font-medium text-[var(--foreground-muted)] tabular-nums"
-          style={{ fontFamily: "var(--font-mono)" }}
-        >
-          {entry.duration_secs
-            ? formatDuration(entry.duration_secs)
-            : "--"}
-        </span>
-      </div>
-    );
-  });
-
-  const recentSessionsEmpty = (
-    <div className="glass-elevated px-4 py-8 text-center">
-      <p className="text-[13px] text-[var(--foreground-muted)]">
+  const recentSessionsContent = recentEntries.length === 0 ? (
+    <div className="glass-elevated" style={{ padding: "32px 16px", textAlign: "center" }}>
+      <p style={{ fontSize: "14px", color: "var(--text-secondary)" }}>
         No sessions yet. Start a timer above!
       </p>
     </div>
+  ) : isDesktop ? (
+    /* Desktop: table layout */
+    <div className="glass-elevated" style={{ overflow: "hidden" }}>
+      <div
+        style={{
+          display: "grid",
+          gridTemplateColumns: "1fr 120px 100px",
+          padding: "12px 16px",
+          borderBottom: "1px solid var(--border)",
+          gap: "12px",
+        }}
+      >
+        <span style={{ fontSize: "12px", fontWeight: 500, color: "var(--text-secondary)" }}>Task</span>
+        <span style={{ fontSize: "12px", fontWeight: 500, color: "var(--text-secondary)" }}>Time</span>
+        <span style={{ fontSize: "12px", fontWeight: 500, color: "var(--text-secondary)", textAlign: "right" }}>Duration</span>
+      </div>
+      {recentEntries.map((entry, i) => {
+        const task = tasks.find((t) => t.id === entry.task_id);
+        const time = new Date(entry.started_at).toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" });
+        return (
+          <div
+            key={entry.id}
+            className="animate-fade-in-up"
+            style={{
+              display: "grid",
+              gridTemplateColumns: "1fr 120px 100px",
+              padding: "12px 16px",
+              gap: "12px",
+              borderBottom: i < recentEntries.length - 1 ? "1px solid rgba(255,255,255,0.04)" : "none",
+              animationDelay: `${200 + i * 50}ms`,
+            }}
+          >
+            <div style={{ display: "flex", alignItems: "center", gap: "12px", minWidth: 0 }}>
+              <div style={{ width: "6px", height: "6px", borderRadius: "9999px", background: "var(--accent)", flexShrink: 0 }} />
+              <span style={{ fontSize: "14px", color: "var(--text-primary)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                {task?.title ?? "Unknown task"}
+              </span>
+            </div>
+            <span style={{ fontSize: "14px", color: "var(--text-secondary)", display: "flex", alignItems: "center" }}>
+              {time}
+            </span>
+            <span style={{
+              fontSize: "14px",
+              fontWeight: 500,
+              color: "var(--text-secondary)",
+              fontVariantNumeric: "tabular-nums",
+              textAlign: "right",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "flex-end",
+              fontFamily: "var(--font-mono)",
+            }}>
+              {entry.duration_secs ? formatDuration(entry.duration_secs) : "--"}
+            </span>
+          </div>
+        );
+      })}
+    </div>
+  ) : (
+    /* Mobile: simple list */
+    <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
+      {recentEntries.map((entry, i) => {
+        const task = tasks.find((t) => t.id === entry.task_id);
+        const time = new Date(entry.started_at).toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" });
+        return (
+          <div
+            key={entry.id}
+            className="animate-fade-in-up"
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: "12px",
+              padding: "12px 16px",
+              borderRadius: "10px",
+              transition: "background 200ms cubic-bezier(0.16,1,0.3,1)",
+              animationDelay: `${200 + i * 50}ms`,
+            }}
+          >
+            <div style={{ width: "8px", height: "8px", borderRadius: "9999px", background: "var(--accent)", flexShrink: 0 }} />
+            <div style={{ display: "flex", flexDirection: "column", flex: 1, minWidth: 0 }}>
+              <span style={{ fontSize: "14px", color: "var(--text-primary)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                {task?.title ?? "Unknown task"}
+              </span>
+              <span style={{ fontSize: "12px", color: "var(--text-secondary)" }}>
+                {time}
+              </span>
+            </div>
+            <span style={{
+              fontSize: "14px",
+              fontWeight: 500,
+              color: "var(--text-secondary)",
+              fontVariantNumeric: "tabular-nums",
+              fontFamily: "var(--font-mono)",
+              flexShrink: 0,
+            }}>
+              {entry.duration_secs ? formatDuration(entry.duration_secs) : "--"}
+            </span>
+          </div>
+        );
+      })}
+    </div>
   );
 
+  /* P1-06: Single component tree */
   return (
-    <>
-      {/* Mobile layout */}
-      <div className="mobile-only" style={{ display: "block" }}>
-        <div className="mx-auto max-w-lg px-4 pt-safe">
-          <header className="pb-6 pt-8 animate-fade-in-up">
-            <h1 className="text-h1 text-[var(--foreground)]">Timer</h1>
-            <p className="mt-1 text-[13px] text-[var(--foreground-muted)]">
-              Track your focus time
-            </p>
-          </header>
+    <div className="animate-fade-in" style={containerStyle}>
+      <header className="animate-fade-in-up" style={{ paddingBottom: "24px" }}>
+        <h1 className="text-h1" style={{ color: "var(--text-primary)" }}>Timer</h1>
+        <p style={{ marginTop: "4px", fontSize: "12px", fontWeight: 500, color: "var(--text-secondary)" }}>
+          Track your focus time
+        </p>
+      </header>
 
-          <section className="pb-8 animate-fade-in-up" style={{ animationDelay: "50ms" }}>
-            <TimerDisplay
-              taskName={currentTask?.title ?? "No task in progress"}
-            />
-          </section>
-
-          <section className="pb-8 animate-fade-in-up" style={{ animationDelay: "100ms" }}>
-            {statsCards}
-          </section>
-
-          <section className="pb-24 animate-fade-in-up" style={{ animationDelay: "150ms" }}>
-            <h2 className="mb-3 text-h3 text-[var(--foreground)]">
-              Recent Sessions
-            </h2>
-            <div className="flex flex-col gap-1">
-              {recentEntries.length === 0 ? recentSessionsEmpty : recentSessionsList}
-            </div>
-          </section>
+      {/* Timer - centered, optionally wider on desktop */}
+      <section
+        className="animate-fade-in-up"
+        style={{
+          display: "flex",
+          justifyContent: "center",
+          paddingBottom: "40px",
+        }}
+      >
+        <div style={{ width: isDesktop ? "300px" : undefined }}>
+          <TimerDisplay
+            taskName={currentTask?.title ?? "No task in progress"}
+          />
         </div>
-      </div>
+      </section>
 
-      {/* Desktop layout - centered with larger timer */}
-      <div className="desktop-only" style={{ flexDirection: "column" }}>
-        <header className="animate-fade-in-up" style={{ paddingBottom: "24px" }}>
-          <h1 className="text-h1 text-[var(--foreground)]">Timer</h1>
-          <p className="mt-1 text-[13px] text-[var(--foreground-muted)]">
-            Track your focus time
-          </p>
-        </header>
+      {/* Stats */}
+      <section className="animate-fade-in-up" style={{ paddingBottom: "32px" }}>
+        {statsCards}
+      </section>
 
-        {/* Timer centered, larger on desktop */}
-        <section
-          className="animate-fade-in-up"
-          style={{
-            display: "flex",
-            justifyContent: "center",
-            paddingBottom: "40px",
-            animationDelay: "50ms",
-          }}
-        >
-          <div style={{ width: "300px" }}>
-            <TimerDisplay
-              taskName={currentTask?.title ?? "No task in progress"}
-            />
-          </div>
-        </section>
-
-        {/* Stats side by side */}
-        <section className="animate-fade-in-up" style={{ paddingBottom: "32px", animationDelay: "100ms" }}>
-          {statsCards}
-        </section>
-
-        {/* Recent sessions as table-like layout */}
-        <section className="animate-fade-in-up" style={{ animationDelay: "150ms" }}>
-          <h2 className="mb-3 text-h3 text-[var(--foreground)]">
-            Recent Sessions
-          </h2>
-          {recentEntries.length === 0 ? (
-            recentSessionsEmpty
-          ) : (
-            <div
-              className="glass-elevated"
-              style={{ overflow: "hidden" }}
-            >
-              {/* Table header */}
-              <div
-                style={{
-                  display: "grid",
-                  gridTemplateColumns: "1fr 120px 100px",
-                  padding: "12px 16px",
-                  borderBottom: "1px solid var(--border)",
-                  gap: "12px",
-                }}
-              >
-                <span className="text-[12px] font-medium text-[var(--foreground-muted)]">Task</span>
-                <span className="text-[12px] font-medium text-[var(--foreground-muted)]">Time</span>
-                <span className="text-[12px] font-medium text-[var(--foreground-muted)] text-right">Duration</span>
-              </div>
-              {/* Table rows */}
-              {recentEntries.map((entry, i) => {
-                const task = tasks.find((t) => t.id === entry.task_id);
-                const time = new Date(entry.started_at).toLocaleTimeString(
-                  "en-US",
-                  { hour: "numeric", minute: "2-digit" },
-                );
-                return (
-                  <div
-                    key={entry.id}
-                    className="animate-fade-in-up"
-                    style={{
-                      display: "grid",
-                      gridTemplateColumns: "1fr 120px 100px",
-                      padding: "12px 16px",
-                      gap: "12px",
-                      borderBottom: i < recentEntries.length - 1 ? "1px solid rgba(255,255,255,0.06)" : "none",
-                      animationDelay: `${200 + i * 50}ms`,
-                    }}
-                  >
-                    <div className="flex items-center gap-3 min-w-0">
-                      <div
-                        className="shrink-0 rounded-full bg-[var(--accent)]"
-                        style={{ width: "6px", height: "6px" }}
-                      />
-                      <span className="truncate text-[13px] text-[var(--foreground)]">
-                        {task?.title ?? "Unknown task"}
-                      </span>
-                    </div>
-                    <span className="text-[13px] text-[var(--foreground-muted)] flex items-center">
-                      {time}
-                    </span>
-                    <span
-                      className="text-[13px] font-medium text-[var(--foreground-muted)] tabular-nums text-right flex items-center justify-end"
-                      style={{ fontFamily: "var(--font-mono)" }}
-                    >
-                      {entry.duration_secs
-                        ? formatDuration(entry.duration_secs)
-                        : "--"}
-                    </span>
-                  </div>
-                );
-              })}
-            </div>
-          )}
-        </section>
-      </div>
-    </>
+      {/* Recent sessions */}
+      <section className="animate-fade-in-up">
+        <h2 style={{ fontSize: "14px", fontWeight: 600, color: "var(--text-primary)", marginBottom: "12px" }}>
+          Recent Sessions
+        </h2>
+        {recentSessionsContent}
+      </section>
+    </div>
   );
 }

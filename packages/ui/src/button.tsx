@@ -8,29 +8,53 @@ interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   size?: ButtonSize;
 }
 
-const variants: Record<ButtonVariant, string> = {
-  primary:
-    "bg-[var(--accent)] hover:bg-[var(--accent-hover)] text-white shadow-[0_0_20px_var(--accent-glow),0_0_60px_rgba(94,106,210,0.08)]",
-  secondary:
-    "bg-[rgba(255,255,255,0.04)] backdrop-blur-xl hover:bg-[rgba(255,255,255,0.08)] border border-[var(--border)] hover:border-[var(--border-highlight)] shadow-[inset_0_1px_0_0_rgba(255,255,255,0.04)]",
-  ghost:
-    "hover:bg-[rgba(255,255,255,0.06)] text-[var(--foreground-muted)] hover:text-[var(--foreground)]",
-  danger:
-    "bg-[var(--danger)] hover:bg-red-600 text-white shadow-[0_0_20px_var(--danger-glow)]",
+const variantStyles: Record<ButtonVariant, React.CSSProperties> = {
+  primary: {
+    background: "var(--accent)",
+    color: "white",
+    boxShadow: "0 0 20px var(--accent-glow)",
+  },
+  secondary: {
+    background: "rgba(255,255,255,0.04)",
+    border: "1px solid var(--border)",
+    color: "var(--text-primary)",
+  },
+  ghost: {
+    background: "transparent",
+    color: "var(--text-secondary)",
+  },
+  danger: {
+    background: "var(--destructive)",
+    color: "white",
+    boxShadow: "0 0 20px var(--destructive-glow)",
+  },
 };
 
-const sizes: Record<ButtonSize, string> = {
-  sm: "px-3 py-1.5 text-[13px] min-h-[44px]",
-  md: "px-4 py-2.5 text-[13px] min-h-[44px]",
-  lg: "px-6 py-3 text-[15px] min-h-[48px]",
+const sizeStyles: Record<ButtonSize, React.CSSProperties> = {
+  sm: { padding: "6px 12px", fontSize: "13px", minHeight: "44px" },
+  md: { padding: "10px 16px", fontSize: "13px", minHeight: "44px" },
+  lg: { padding: "12px 24px", fontSize: "15px", minHeight: "48px" },
 };
 
 export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
-  ({ variant = "primary", size = "md", className = "", ...props }, ref) => {
+  ({ variant = "primary", size = "md", className = "", style, ...props }, ref) => {
     return (
       <button
         ref={ref}
-        className={`inline-flex items-center justify-center rounded-[var(--radius)] font-medium transition-all duration-200 ease-[cubic-bezier(0.16,1,0.3,1)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--bg-base)] disabled:opacity-40 disabled:pointer-events-none active:scale-[0.97] ${variants[variant]} ${sizes[size]} ${className}`}
+        className={className}
+        style={{
+          display: "inline-flex",
+          alignItems: "center",
+          justifyContent: "center",
+          borderRadius: "10px",
+          fontWeight: 500,
+          border: "none",
+          cursor: "pointer",
+          transition: "all 200ms cubic-bezier(0.16,1,0.3,1)",
+          ...variantStyles[variant],
+          ...sizeStyles[size],
+          ...style,
+        }}
         {...props}
       />
     );

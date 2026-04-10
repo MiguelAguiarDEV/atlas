@@ -18,15 +18,15 @@ interface SidebarProps {
 export function Sidebar({ items, activeItem, onItemClick }: SidebarProps) {
   return (
     <nav
-      className="desktop-only"
       style={{
         position: "fixed",
         top: 0,
         left: 0,
         bottom: 0,
         width: "240px",
-        background: "#111113",
-        borderRight: "1px solid rgba(255,255,255,0.12)",
+        display: "flex",
+        background: "var(--bg-deep)",
+        borderRight: "1px solid var(--border)",
         flexDirection: "column",
         zIndex: 50,
         overflowY: "auto",
@@ -40,8 +40,8 @@ export function Sidebar({ items, activeItem, onItemClick }: SidebarProps) {
       >
         <span
           style={{
-            fontSize: "24px",
-            fontWeight: 700,
+            fontSize: "18px",
+            fontWeight: 600,
             color: "var(--accent)",
             letterSpacing: "-0.02em",
           }}
@@ -72,36 +72,26 @@ export function Sidebar({ items, activeItem, onItemClick }: SidebarProps) {
                   onItemClick(item.key);
                 }
               }}
+              className="sidebar-nav-item"
               style={{
                 display: "flex",
                 alignItems: "center",
                 gap: "12px",
-                height: "44px",
+                height: "32px",
                 padding: "0 12px",
-                borderRadius: "var(--radius-sm)",
+                borderRadius: "8px",
                 textDecoration: "none",
-                transition: "background 200ms cubic-bezier(0.16,1,0.3,1)",
+                transition: "all 200ms cubic-bezier(0.16,1,0.3,1)",
                 background: isActive
-                  ? "rgba(94,106,210,0.1)"
+                  ? "var(--bg-surface)"
                   : "transparent",
                 borderLeft: isActive
                   ? "3px solid var(--accent)"
                   : "3px solid transparent",
                 color: isActive
-                  ? "var(--accent)"
-                  : "var(--foreground-muted)",
+                  ? "var(--text-primary)"
+                  : "var(--text-secondary)",
                 cursor: "pointer",
-              }}
-              onMouseEnter={(e) => {
-                if (!isActive) {
-                  (e.currentTarget as HTMLElement).style.background =
-                    "rgba(255,255,255,0.06)";
-                }
-              }}
-              onMouseLeave={(e) => {
-                (e.currentTarget as HTMLElement).style.background = isActive
-                  ? "rgba(94,106,210,0.1)"
-                  : "transparent";
               }}
               aria-current={isActive ? "page" : undefined}
             >
@@ -134,41 +124,45 @@ export function Sidebar({ items, activeItem, onItemClick }: SidebarProps) {
       <div
         style={{
           padding: "16px 12px 24px 12px",
-          borderTop: "1px solid rgba(255,255,255,0.08)",
+          borderTop: "1px solid var(--border)",
           marginTop: "auto",
         }}
       >
-        <div
+        <a
+          href="/more/settings"
           style={{
             display: "flex",
             alignItems: "center",
             gap: "10px",
             padding: "0 12px",
-            height: "40px",
-            borderRadius: "var(--radius-sm)",
-            color: "var(--foreground-muted)",
+            height: "32px",
+            borderRadius: "8px",
+            color: "var(--text-secondary)",
             fontSize: "13px",
+            textDecoration: "none",
+            transition: "all 200ms cubic-bezier(0.16,1,0.3,1)",
           }}
+          className="sidebar-nav-item"
         >
           <div
             style={{
               width: "28px",
               height: "28px",
               borderRadius: "9999px",
-              background: "rgba(255,255,255,0.08)",
+              background: "rgba(255,255,255,0.06)",
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
               fontSize: "12px",
               fontWeight: 600,
-              color: "var(--foreground)",
+              color: "var(--text-primary)",
               flexShrink: 0,
             }}
           >
             U
           </div>
           <span>Settings</span>
-        </div>
+        </a>
       </div>
     </nav>
   );

@@ -32,6 +32,13 @@ function formatMinutes(min: number): string {
   return m > 0 ? `${h}h ${m}m` : `${h}h`;
 }
 
+const priorityDotColor: Record<Priority, string> = {
+  0: "var(--destructive)",
+  1: "var(--warning)",
+  2: "var(--accent)",
+  3: "var(--text-tertiary)",
+};
+
 export function TaskCard({
   task,
   onToggle,
@@ -46,38 +53,41 @@ export function TaskCard({
     onToggle?.(task.id);
   };
 
-  const priorityLeftBorder: Record<Priority, string> = {
-    0: "#EF4444",
-    1: "#F59E0B",
-    2: "#5E6AD2",
-    3: "transparent",
-  };
-
   return (
     <div
-      className={`group flex items-center gap-3 rounded-[var(--radius)] overflow-hidden transition-all duration-200 ease-[cubic-bezier(0.16,1,0.3,1)] active:scale-[0.97] hover:bg-[var(--surface-hover)] hover:border-[var(--border-highlight)] ${
-        checked ? "opacity-50" : ""
-      } ${className}`}
+      className={`group ${checked ? "opacity-50" : ""} ${className}`}
       style={{
-        background: "#111113",
-        border: "1px solid rgba(255,255,255,0.12)",
-        borderLeft: `4px solid ${priorityLeftBorder[task.priority]}`,
-        padding: "16px",
-        boxShadow: "inset 0 1px 0 0 rgba(255,255,255,0.04)",
+        display: "flex",
+        alignItems: "center",
+        gap: "12px",
+        background: "var(--bg-elevated)",
+        border: "1px solid var(--border)",
+        borderRadius: "10px",
+        padding: "14px 16px",
+        transition: "all 200ms cubic-bezier(0.16,1,0.3,1)",
+        cursor: "pointer",
       }}
     >
       {/* Checkbox */}
       <button
         onClick={handleToggle}
-        style={{width:"44px",height:"44px",minWidth:"44px",minHeight:"44px"}} className="flex shrink-0 items-center justify-center rounded-full transition-all duration-200 ease-[cubic-bezier(0.16,1,0.3,1)]"
+        style={{ width: "44px", height: "44px", minWidth: "44px", minHeight: "44px", display: "flex", alignItems: "center", justifyContent: "center", background: "none", border: "none", cursor: "pointer", borderRadius: "9999px", flexShrink: 0 }}
         aria-label={checked ? "Mark incomplete" : "Mark complete"}
       >
         <span
-          className="flex h-[22px] w-[22px] items-center justify-center rounded-full border-[1.5px]"
           style={{
+            display: "flex",
+            width: "22px",
+            height: "22px",
+            alignItems: "center",
+            justifyContent: "center",
+            borderRadius: "9999px",
+            borderWidth: "1.5px",
+            borderStyle: "solid",
             borderColor: checked ? "var(--success)" : "rgba(255,255,255,0.15)",
             backgroundColor: checked ? "var(--success)" : "transparent",
             boxShadow: checked ? "0 0 12px var(--success-glow)" : "none",
+            transition: "all 200ms cubic-bezier(0.16,1,0.3,1)",
           }}
         >
           {checked && (
@@ -90,41 +100,66 @@ export function TaskCard({
       </button>
 
       {/* Content */}
-      <div className="flex min-w-0 flex-1 flex-col gap-0.5">
-        <span
-          className={`text-[14px] font-medium leading-tight transition-all duration-200 ${
-            checked
-              ? "line-through text-[var(--foreground-muted)]"
-              : "text-[var(--foreground)]"
-          }`}
-          style={{
-            display: "-webkit-box",
-            WebkitLineClamp: 2,
-            WebkitBoxOrient: "vertical",
-            overflow: "hidden",
-          }}
-        >
-          {task.title}
-        </span>
-        <div className="flex items-center gap-2">
+      <div style={{ display: "flex", flexDirection: "column", gap: "2px", minWidth: 0, flex: 1 }}>
+        <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+          {/* Priority dot inline before title */}
+          <span
+            style={{
+              width: "8px",
+              height: "8px",
+              borderRadius: "9999px",
+              backgroundColor: priorityDotColor[task.priority],
+              flexShrink: 0,
+            }}
+            className={task.priority === 0 ? "pulse-dot" : ""}
+          />
+          <span
+            style={{
+              fontSize: "14px",
+              fontWeight: 500,
+              lineHeight: 1.4,
+              color: checked ? "var(--text-secondary)" : "var(--text-primary)",
+              textDecoration: checked ? "line-through" : "none",
+              display: "-webkit-box",
+              WebkitLineClamp: 2,
+              WebkitBoxOrient: "vertical",
+              overflow: "hidden",
+              transition: "color 200ms cubic-bezier(0.16,1,0.3,1)",
+            }}
+          >
+            {task.title}
+          </span>
+        </div>
+        <div style={{ display: "flex", alignItems: "center", gap: "8px", paddingLeft: "16px" }}>
           {showProject && task.project && (
-            <span className="truncate rounded-[6px] bg-[rgba(255,255,255,0.04)] px-1.5 py-0.5 text-[12px] text-[var(--foreground-muted)]">
+            <span style={{
+              fontSize: "12px",
+              color: "var(--text-secondary)",
+              overflow: "hidden",
+              textOverflow: "ellipsis",
+              whiteSpace: "nowrap",
+            }}>
               {task.project}
             </span>
           )}
           {showDueDate && task.dueDate && (
-            <span className="text-[12px] text-[var(--foreground-muted)]">
+            <span style={{ fontSize: "12px", color: "var(--text-secondary)" }}>
               {task.dueDate}
             </span>
           )}
         </div>
       </div>
 
-      {/* Right side: priority + estimate */}
-      <div className="flex shrink-0 items-center gap-2.5">
+      {/* Right side: priority badge + estimate */}
+      <div style={{ display: "flex", alignItems: "center", gap: "10px", flexShrink: 0 }}>
         <PriorityBadge priority={task.priority} />
         {task.estimatedMinutes && (
-          <span className="text-[12px] font-medium text-[var(--foreground-muted)] tabular-nums">
+          <span style={{
+            fontSize: "12px",
+            fontWeight: 500,
+            color: "var(--text-secondary)",
+            fontVariantNumeric: "tabular-nums",
+          }}>
             {formatMinutes(task.estimatedMinutes)}
           </span>
         )}
