@@ -10,11 +10,11 @@
   /* Backgrounds */
   --bg-deep: #020203;
   --bg-base: #050506;
-  --bg-elevated: #0a0a0c;
+  --bg-elevated: #111113;
 
   /* Surfaces */
-  --surface: rgba(255, 255, 255, 0.05);
-  --surface-hover: rgba(255, 255, 255, 0.08);
+  --surface: rgba(255, 255, 255, 0.07);
+  --surface-hover: rgba(255, 255, 255, 0.12);
 
   /* Foreground */
   --foreground: #EDEDEF;
@@ -34,8 +34,8 @@
   --danger-glow: rgba(239, 68, 68, 0.2);
 
   /* Border */
-  --border: rgba(255, 255, 255, 0.08);
-  --border-highlight: rgba(255, 255, 255, 0.12);
+  --border: rgba(255, 255, 255, 0.12);
+  --border-highlight: rgba(255, 255, 255, 0.18);
 
   /* Radius */
   --radius: 16px;

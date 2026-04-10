@@ -24,15 +24,18 @@ export function BottomTabBar({
 }: BottomTabBarProps) {
   return (
     <nav
-      className={`fixed bottom-0 left-0 right-0 z-50 border-t border-[var(--border)] ${className}`}
+      className={`fixed bottom-0 left-0 right-0 z-50 ${className}`}
       style={{
         paddingBottom: "env(safe-area-inset-bottom)",
-        background: "rgba(5,5,6,0.85)",
-        backdropFilter: "blur(20px)",
-        WebkitBackdropFilter: "blur(20px)",
+        background: "#111113",
+        borderTop: "1px solid rgba(255,255,255,0.12)",
+        boxShadow: "0 -4px 20px rgba(0,0,0,0.5)",
       }}
     >
-      <div className="mx-auto flex max-w-lg items-center justify-around px-2 py-1">
+      <div
+        className="mx-auto flex max-w-lg items-center justify-evenly"
+        style={{ height: "64px", padding: "0 8px" }}
+      >
         {tabs.map((tab) => {
           const isActive = activeTab === tab.key;
           return (
@@ -46,29 +49,40 @@ export function BottomTabBar({
                 }
               }}
               style={{
-                minWidth: "48px",
+                minWidth: "56px",
                 minHeight: "48px",
               }}
-              className={`relative flex flex-col items-center justify-center gap-0.5 rounded-[var(--radius-sm)] px-3 py-1.5 transition-all duration-200 ease-[cubic-bezier(0.16,1,0.3,1)] active:scale-[0.93] ${
+              className={`relative flex flex-col items-center justify-center gap-1 rounded-[var(--radius-sm)] px-3 py-1.5 transition-all duration-200 ease-[cubic-bezier(0.16,1,0.3,1)] active:scale-[0.93] ${
                 isActive
                   ? "text-[var(--accent)]"
                   : "text-[var(--foreground-muted)] active:text-[var(--foreground)]"
               }`}
               aria-current={isActive ? "page" : undefined}
             >
-              {/* Active indicator line */}
+              <span
+                className="flex items-center justify-center"
+                style={{ width: "22px", height: "22px" }}
+              >
+                {tab.icon}
+              </span>
+              <span
+                className="text-[12px]"
+                style={{ fontWeight: isActive ? 700 : 500 }}
+              >
+                {tab.label}
+              </span>
+              {/* Active dot indicator below label */}
               {isActive && (
                 <span
-                  className="absolute -top-1 h-[2px] w-5 rounded-full bg-[var(--accent)]"
+                  className="absolute rounded-full bg-[var(--accent)]"
                   style={{
-                    boxShadow: "0 0 8px var(--accent-glow), 0 2px 12px var(--accent-glow)",
+                    width: "4px",
+                    height: "4px",
+                    bottom: "2px",
+                    boxShadow: "0 0 6px var(--accent-glow)",
                   }}
                 />
               )}
-              <span className="flex h-6 w-6 items-center justify-center">
-                {tab.icon}
-              </span>
-              <span className="text-[12px] font-medium">{tab.label}</span>
             </a>
           );
         })}

@@ -31,13 +31,15 @@ export function HabitCheck({
   return (
     <button
       onClick={handleToggle}
-      className={`flex items-center gap-3 rounded-[var(--radius)] border px-4 py-3.5 transition-all duration-200 ease-[cubic-bezier(0.16,1,0.3,1)] active:scale-[0.97] min-h-[52px] ${
-        checked
-          ? "bg-[var(--success)]/8 border-[var(--success)]/20"
-          : "bg-[var(--surface)] border-[var(--border)] hover:bg-[var(--surface-hover)] hover:border-[var(--border-highlight)]"
-      } ${className}`}
+      className={`flex items-center gap-3 rounded-[var(--radius)] transition-all duration-200 ease-[cubic-bezier(0.16,1,0.3,1)] active:scale-[0.97] w-full ${className}`}
       style={{
-        minHeight: "52px",
+        minHeight: "56px",
+        height: "56px",
+        padding: "0 16px",
+        background: checked ? "rgba(34,197,94,0.08)" : "#111113",
+        border: checked
+          ? "1px solid rgba(34,197,94,0.20)"
+          : "1px solid rgba(255,255,255,0.12)",
         boxShadow: checked
           ? "inset 0 1px 0 0 rgba(34,197,94,0.08)"
           : "inset 0 1px 0 0 rgba(255,255,255,0.04)",
@@ -45,23 +47,25 @@ export function HabitCheck({
     >
       {/* Circle checkbox with fill animation */}
       <div
-        className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-full border-[1.5px] transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] ${
+        className={`flex shrink-0 items-center justify-center rounded-full border-[1.5px] transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] ${
           checked
             ? "border-[var(--success)] bg-[var(--success)]"
             : "border-[rgba(255,255,255,0.15)]"
         }`}
         style={{
+          width: "24px",
+          height: "24px",
           boxShadow: checked ? "0 0 12px var(--success-glow)" : "none",
         }}
       >
         {checked && (
-          <CheckIcon size={12} className="text-white animate-check" />
+          <CheckIcon size={14} className="text-white animate-check" />
         )}
       </div>
 
       {/* Label */}
       <span
-        className={`flex-1 text-left text-[13px] font-medium transition-colors duration-200 ${
+        className={`flex-1 text-left text-[14px] font-medium transition-colors duration-200 ${
           checked ? "text-[var(--success)]" : "text-[var(--foreground)]"
         }`}
       >
@@ -71,12 +75,12 @@ export function HabitCheck({
       {/* Streak badge */}
       {streak > 0 && (
         <span
-          className="rounded-[var(--radius-full)] px-2 py-0.5 text-[12px] font-medium tabular-nums"
+          className="rounded-[var(--radius-full)] px-2.5 py-1 text-[12px] font-semibold tabular-nums"
           style={{
             background: checked
-              ? "rgba(34,197,94,0.15)"
-              : "rgba(255,255,255,0.06)",
-            color: checked ? "var(--success)" : "var(--foreground-muted)",
+              ? "rgba(34,197,94,0.20)"
+              : "rgba(94,106,210,0.15)",
+            color: checked ? "var(--success)" : "var(--accent)",
           }}
         >
           {streak}d

@@ -86,19 +86,19 @@ export default function TasksPage() {
   // Loading state
   if (loading) {
     return (
-      <div className="mx-auto max-w-lg px-4 pt-safe">
-        <header className="pb-4 pt-8">
+      <div className="mx-auto max-w-lg pt-safe" style={{ padding: "60px 20px 180px 20px" }}>
+        <header style={{ paddingBottom: "16px" }}>
           <h1 className="text-h1 text-[var(--foreground)]">Tasks</h1>
           <p className="mt-1 text-[13px] text-[var(--foreground-muted)]">
             Loading...
           </p>
         </header>
-        <div className="flex flex-col gap-3">
+        <div className="flex flex-col" style={{ gap: "12px" }}>
           {[1, 2, 3, 4].map((i) => (
             <div
               key={i}
-              className="h-[60px] skeleton"
-              style={{ animationDelay: `${i * 100}ms` }}
+              className="skeleton"
+              style={{ height: "60px", animationDelay: `${i * 100}ms` }}
             />
           ))}
         </div>
@@ -109,8 +109,8 @@ export default function TasksPage() {
   // Error state
   if (error) {
     return (
-      <div className="mx-auto max-w-lg px-4 pt-safe">
-        <header className="pb-4 pt-8">
+      <div className="mx-auto max-w-lg pt-safe" style={{ padding: "60px 20px 180px 20px" }}>
+        <header style={{ paddingBottom: "16px" }}>
           <h1 className="text-h1 text-[var(--foreground)]">Tasks</h1>
         </header>
         <div className="glass-elevated px-4 py-8 text-center">
@@ -127,9 +127,9 @@ export default function TasksPage() {
   }
 
   return (
-    <div className="mx-auto max-w-lg px-4 pt-safe">
+    <div className="mx-auto max-w-lg pt-safe" style={{ padding: "60px 20px 180px 20px" }}>
       {/* Header */}
-      <header className="pb-4 pt-8 animate-fade-in-up">
+      <header className="animate-fade-in-up" style={{ paddingBottom: "16px" }}>
         <div className="flex items-baseline justify-between">
           <h1 className="text-h1 text-[var(--foreground)]">Tasks</h1>
           <span className="text-[13px] text-[var(--foreground-muted)] tabular-nums">
@@ -202,7 +202,7 @@ export default function TasksPage() {
       </div>
 
       {/* Task List */}
-      <div className="flex flex-col gap-3 pb-24">
+      <div className="flex flex-col" style={{ gap: "12px" }}>
         {filtered.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-20 text-center animate-fade-in-up">
             <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-[var(--surface)]">

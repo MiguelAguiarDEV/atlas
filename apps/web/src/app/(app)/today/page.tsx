@@ -130,19 +130,19 @@ export default function TodayPage() {
   // Loading state
   if (loading) {
     return (
-      <div className="mx-auto max-w-lg px-4 pt-safe">
-        <header className="pb-6 pt-8">
+      <div className="mx-auto max-w-lg pt-safe" style={{ padding: "60px 20px 180px 20px" }}>
+        <header style={{ paddingBottom: "24px" }}>
           <h1 className="text-h1 text-[var(--foreground)]">{greeting}</h1>
           <p className="mt-1 text-[13px] text-[var(--foreground-muted)]">
             {dateStr}
           </p>
         </header>
-        <div className="flex flex-col gap-3">
+        <div className="flex flex-col" style={{ gap: "12px" }}>
           {[1, 2, 3].map((i) => (
             <div
               key={i}
-              className="h-[60px] skeleton"
-              style={{ animationDelay: `${i * 100}ms` }}
+              className="skeleton"
+              style={{ height: "60px", animationDelay: `${i * 100}ms` }}
             />
           ))}
         </div>
@@ -153,8 +153,8 @@ export default function TodayPage() {
   // Error state
   if (error) {
     return (
-      <div className="mx-auto max-w-lg px-4 pt-safe">
-        <header className="pb-6 pt-8">
+      <div className="mx-auto max-w-lg pt-safe" style={{ padding: "60px 20px 180px 20px" }}>
+        <header style={{ paddingBottom: "24px" }}>
           <h1 className="text-h1 text-[var(--foreground)]">{greeting}</h1>
           <p className="mt-1 text-[13px] text-[var(--foreground-muted)]">
             {dateStr}
@@ -174,9 +174,9 @@ export default function TodayPage() {
   }
 
   return (
-    <div className="mx-auto max-w-lg px-4 pt-safe">
+    <div className="mx-auto max-w-lg pt-safe" style={{ padding: "60px 20px 180px 20px" }}>
       {/* Header with greeting + date */}
-      <header className="pb-6 pt-8 animate-fade-in-up">
+      <header className="animate-fade-in-up" style={{ paddingBottom: "24px" }}>
         <h1 className="text-h1 text-[var(--foreground)]">{greeting}</h1>
         <p className="mt-1 text-[13px] text-[var(--foreground-muted)]">
           {dateStr}
@@ -184,16 +184,24 @@ export default function TodayPage() {
       </header>
 
       {/* Energy Selector — segmented control */}
-      <section className="pb-8 animate-fade-in-up" style={{ animationDelay: "50ms" }}>
+      <section className="animate-fade-in-up" style={{ animationDelay: "50ms", paddingBottom: "32px" }}>
         <EnergySelector />
       </section>
 
       {/* Tasks Section */}
-      <section className="pb-8 animate-fade-in-up" style={{ animationDelay: "100ms" }}>
-        <div className="mb-3 flex items-center justify-between">
-          <h2 className="text-h3 text-[var(--foreground)]">
+      <section className="animate-fade-in-up" style={{ animationDelay: "100ms", paddingBottom: "32px" }}>
+        <div className="flex items-center justify-between" style={{ marginBottom: "12px" }}>
+          <h2 className="text-[15px] font-semibold text-[var(--foreground)]">
             Tasks
-            <span className="ml-2 text-[13px] font-normal text-[var(--foreground-muted)]">
+            <span
+              className="ml-2 text-[12px] font-semibold"
+              style={{
+                background: "rgba(94,106,210,0.15)",
+                color: "var(--accent)",
+                padding: "2px 8px",
+                borderRadius: "9999px",
+              }}
+            >
               {activeTasks.length}
             </span>
           </h2>
@@ -203,7 +211,7 @@ export default function TodayPage() {
             </span>
           )}
         </div>
-        <div className="flex flex-col gap-3">
+        <div className="flex flex-col" style={{ gap: "12px" }}>
           {tasks.length === 0 ? (
             <div className="glass-elevated px-4 py-10 text-center">
               <p className="text-[13px] text-[var(--foreground-muted)]">
@@ -225,10 +233,18 @@ export default function TodayPage() {
       </section>
 
       {/* Habits Section */}
-      <section className="pb-36 animate-fade-in-up" style={{ animationDelay: "200ms" }}>
-        <h2 className="mb-3 text-h3 text-[var(--foreground)]">
+      <section className="animate-fade-in-up" style={{ animationDelay: "200ms" }}>
+        <h2 className="text-[15px] font-semibold text-[var(--foreground)]" style={{ marginBottom: "12px" }}>
           Habits
-          <span className="ml-2 text-[13px] font-normal text-[var(--foreground-muted)]">
+          <span
+            className="ml-2 text-[12px] font-semibold"
+            style={{
+              background: "rgba(94,106,210,0.15)",
+              color: "var(--accent)",
+              padding: "2px 8px",
+              borderRadius: "9999px",
+            }}
+          >
             {habits.length}
           </span>
         </h2>
@@ -238,21 +254,8 @@ export default function TodayPage() {
               No habits configured yet.
             </p>
           </div>
-        ) : habits.length <= 4 ? (
-          /* Horizontal layout for 4 or fewer habits */
-          <div className="grid grid-cols-2 gap-3">
-            {habits.map((habit) => (
-              <HabitCheck
-                key={habit.id}
-                id={String(habit.id)}
-                label={habit.name}
-                defaultChecked={completedHabits.has(habit.id)}
-                onToggle={handleHabitToggle}
-              />
-            ))}
-          </div>
         ) : (
-          <div className="flex flex-col gap-3">
+          <div className="flex flex-col" style={{ gap: "12px" }}>
             {habits.map((habit) => (
               <HabitCheck
                 key={habit.id}

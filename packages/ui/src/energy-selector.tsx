@@ -57,21 +57,28 @@ export function EnergySelector({
 
   return (
     <div
-      className={`flex rounded-[var(--radius)] bg-[var(--surface)] border border-[var(--border)] p-1 ${className}`}
-      style={{ boxShadow: "inset 0 1px 0 0 rgba(255,255,255,0.04)" }}
+      className={`flex p-1 ${className}`}
+      style={{
+        background: "#111113",
+        border: "1px solid rgba(255,255,255,0.12)",
+        borderRadius: "12px",
+        boxShadow: "inset 0 1px 0 0 rgba(255,255,255,0.04)",
+      }}
     >
-      {levels.map(({ value, label, icon: Icon, activeColor, activeBg }) => {
+      {levels.map(({ value, label, icon: Icon }) => {
         const isActive = selected === value;
         return (
           <button
             key={value}
             onClick={() => handleSelect(value)}
-            style={{ minHeight: "44px" }}
-            className={`flex flex-1 items-center justify-center gap-2 rounded-[var(--radius-sm)] px-3 py-2.5 text-[13px] font-medium transition-all duration-200 ease-[cubic-bezier(0.16,1,0.3,1)] active:scale-[0.97] ${
-              isActive
-                ? `${activeBg} ${activeColor}`
-                : "text-[var(--foreground-muted)] hover:text-[var(--foreground)] hover:bg-[rgba(255,255,255,0.04)]"
-            }`}
+            style={{
+              minHeight: "44px",
+              borderRadius: "10px",
+              padding: "12px 0",
+              background: isActive ? "#5E6AD2" : "transparent",
+              color: isActive ? "#FFFFFF" : "var(--foreground-muted)",
+            }}
+            className="flex flex-1 items-center justify-center gap-2 text-[13px] font-medium transition-all duration-200 ease-[cubic-bezier(0.16,1,0.3,1)] active:scale-[0.97]"
           >
             <Icon size={16} />
             {label}

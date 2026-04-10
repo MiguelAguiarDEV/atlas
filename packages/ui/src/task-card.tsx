@@ -46,12 +46,23 @@ export function TaskCard({
     onToggle?.(task.id);
   };
 
+  const priorityLeftBorder: Record<Priority, string> = {
+    0: "#EF4444",
+    1: "#F59E0B",
+    2: "#5E6AD2",
+    3: "transparent",
+  };
+
   return (
     <div
-      className={`group flex items-center gap-3 rounded-[var(--radius)] bg-[var(--surface)] border border-[var(--border)] px-4 py-3.5 overflow-hidden transition-all duration-200 ease-[cubic-bezier(0.16,1,0.3,1)] active:scale-[0.97] hover:bg-[var(--surface-hover)] hover:border-[var(--border-highlight)] ${
+      className={`group flex items-center gap-3 rounded-[var(--radius)] overflow-hidden transition-all duration-200 ease-[cubic-bezier(0.16,1,0.3,1)] active:scale-[0.97] hover:bg-[var(--surface-hover)] hover:border-[var(--border-highlight)] ${
         checked ? "opacity-50" : ""
       } ${className}`}
       style={{
+        background: "#111113",
+        border: "1px solid rgba(255,255,255,0.12)",
+        borderLeft: `4px solid ${priorityLeftBorder[task.priority]}`,
+        padding: "16px",
         boxShadow: "inset 0 1px 0 0 rgba(255,255,255,0.04)",
       }}
     >
@@ -81,7 +92,7 @@ export function TaskCard({
       {/* Content */}
       <div className="flex min-w-0 flex-1 flex-col gap-0.5">
         <span
-          className={`text-[13px] font-medium leading-tight transition-all duration-200 ${
+          className={`text-[14px] font-medium leading-tight transition-all duration-200 ${
             checked
               ? "line-through text-[var(--foreground-muted)]"
               : "text-[var(--foreground)]"

@@ -52,7 +52,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
 
   return (
     <div className="flex min-h-dvh flex-col bg-[var(--bg-base)]">
-      <main className="flex-1 pb-[calc(80px+env(safe-area-inset-bottom))]">
+      <main className="flex-1" style={{ paddingBottom: "calc(64px + env(safe-area-inset-bottom))" }}>
         {children}
       </main>
       <BottomTabBar tabs={tabs} activeTab={activeTab} />
