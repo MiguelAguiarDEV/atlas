@@ -7,6 +7,7 @@ type EnergyLevel = "high" | "medium" | "low";
 
 interface EnergySelectorProps {
   defaultValue?: EnergyLevel;
+  value?: EnergyLevel;
   onChange?: (level: EnergyLevel) => void;
   className?: string;
 }
@@ -43,12 +44,16 @@ const levels: {
 
 export function EnergySelector({
   defaultValue,
+  value: controlledValue,
   onChange,
   className = "",
 }: EnergySelectorProps) {
   const [selected, setSelected] = useState<EnergyLevel | undefined>(
-    defaultValue
+    controlledValue ?? defaultValue
   );
+
+  // Sync with controlled value
+  const currentValue = controlledValue ?? selected;
 
   const handleSelect = (level: EnergyLevel) => {
     setSelected(level);
@@ -67,7 +72,7 @@ export function EnergySelector({
       }}
     >
       {levels.map(({ value, label, icon: Icon, activeColor, activeBg }) => {
-        const isActive = selected === value;
+        const isActive = currentValue === value;
         return (
           <button
             key={value}

@@ -1,14 +1,25 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { PriorityBadge } from "./priority-badge";
 import type { TaskData } from "./task-card";
+
+export interface TaskComment {
+  id: number | string;
+  text: string;
+  created_at: string;
+}
 
 interface TaskDetailPanelProps {
   task: TaskData | null;
   open: boolean;
   onClose: () => void;
   onUpdate?: (id: string, updates: Partial<TaskData>) => void;
+  onDescriptionSave?: (id: string, description: string) => void;
+  onCommentAdd?: (id: string, text: string) => void;
+  onPriorityChange?: (id: string, priority: number) => void;
+  comments?: TaskComment[];
+  description?: string;
 }
 
 const STATUS_OPTIONS = [
@@ -17,6 +28,13 @@ const STATUS_OPTIONS = [
   { value: "in_progress", label: "In Progress" },
   { value: "in_review", label: "In Review" },
   { value: "done", label: "Done" },
+];
+
+const PRIORITY_OPTIONS = [
+  { value: 0, label: "Urgent", color: "var(--destructive)" },
+  { value: 1, label: "High", color: "var(--warning)" },
+  { value: 2, label: "Medium", color: "var(--accent)" },
+  { value: 3, label: "Low", color: "var(--text-tertiary)" },
 ];
 
 function statusBadgeStyle(status: string): React.CSSProperties {
@@ -57,6 +75,11 @@ export function TaskDetailPanel({
   open,
   onClose,
   onUpdate,
+  onDescriptionSave,
+  onCommentAdd,
+  onPriorityChange,
+  comments = [],
+  description: externalDescription,
 }: TaskDetailPanelProps) {
   const isDesktop = useIsDesktop();
   const [mounted, setMounted] = useState(false);
@@ -65,15 +88,26 @@ export function TaskDetailPanel({
   const [titleValue, setTitleValue] = useState("");
   const [descValue, setDescValue] = useState("");
   const [commentValue, setCommentValue] = useState("");
+  const [savedIndicator, setSavedIndicator] = useState(false);
+  const [submittingComment, setSubmittingComment] = useState(false);
   const titleInputRef = useRef<HTMLInputElement>(null);
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const descDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const savedTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const showSaved = useCallback(() => {
+    setSavedIndicator(true);
+    if (savedTimeoutRef.current) clearTimeout(savedTimeoutRef.current);
+    savedTimeoutRef.current = setTimeout(() => setSavedIndicator(false), 1500);
+  }, []);
 
   useEffect(() => {
     if (open && task) {
       setTitleValue(task.title);
-      setDescValue("");
+      setDescValue(externalDescription ?? "");
       setCommentValue("");
       setEditingTitle(false);
+      setSavedIndicator(false);
       setMounted(true);
       requestAnimationFrame(() => {
         requestAnimationFrame(() => {
@@ -89,7 +123,7 @@ export function TaskDetailPanel({
     return () => {
       if (timeoutRef.current) clearTimeout(timeoutRef.current);
     };
-  }, [open, task]);
+  }, [open, task, externalDescription]);
 
   useEffect(() => {
     if (editingTitle && titleInputRef.current) {
@@ -108,6 +142,14 @@ export function TaskDetailPanel({
     return () => document.removeEventListener("keydown", handler);
   }, [open, onClose]);
 
+  // Cleanup debounce on unmount
+  useEffect(() => {
+    return () => {
+      if (descDebounceRef.current) clearTimeout(descDebounceRef.current);
+      if (savedTimeoutRef.current) clearTimeout(savedTimeoutRef.current);
+    };
+  }, []);
+
   if (!mounted || !task) return null;
 
   const panelWidth = isDesktop ? "480px" : "100%";
@@ -116,11 +158,62 @@ export function TaskDetailPanel({
     setEditingTitle(false);
     if (titleValue.trim() && titleValue !== task.title) {
       onUpdate?.(task.id, { title: titleValue.trim() });
+      showSaved();
     }
   };
 
   const handleStatusChange = (newStatus: string) => {
     onUpdate?.(task.id, { status: newStatus } as Partial<TaskData>);
+    showSaved();
+  };
+
+  const handlePriorityChange = (newPriority: number) => {
+    if (onPriorityChange) {
+      onPriorityChange(task.id, newPriority);
+    } else {
+      onUpdate?.(task.id, { priority: newPriority as 0 | 1 | 2 | 3 });
+    }
+    showSaved();
+  };
+
+  const handleDescChange = (value: string) => {
+    setDescValue(value);
+    // Debounce description save at 500ms
+    if (descDebounceRef.current) clearTimeout(descDebounceRef.current);
+    descDebounceRef.current = setTimeout(() => {
+      if (onDescriptionSave) {
+        onDescriptionSave(task.id, value);
+        showSaved();
+      }
+    }, 500);
+  };
+
+  const handleCommentSubmit = async () => {
+    const text = commentValue.trim();
+    if (!text || submittingComment) return;
+    setSubmittingComment(true);
+    try {
+      onCommentAdd?.(task.id, text);
+      setCommentValue("");
+    } finally {
+      setSubmittingComment(false);
+    }
+  };
+
+  const formatCommentTime = (iso: string) => {
+    try {
+      const d = new Date(iso);
+      const now = new Date();
+      const diffMs = now.getTime() - d.getTime();
+      const diffMins = Math.floor(diffMs / 60000);
+      if (diffMins < 1) return "just now";
+      if (diffMins < 60) return `${diffMins}m ago`;
+      const diffHours = Math.floor(diffMins / 60);
+      if (diffHours < 24) return `${diffHours}h ago`;
+      return d.toLocaleDateString("en-US", { month: "short", day: "numeric" });
+    } catch {
+      return "";
+    }
   };
 
   return (
@@ -173,6 +266,21 @@ export function TaskDetailPanel({
               {STATUS_OPTIONS.find((s) => s.value === task.status)?.label ?? "Inbox"}
             </span>
             <PriorityBadge priority={task.priority} />
+            {/* Saved indicator */}
+            {savedIndicator && (
+              <span
+                style={{
+                  fontSize: "11px",
+                  fontWeight: 500,
+                  color: "var(--success)",
+                  opacity: savedIndicator ? 1 : 0,
+                  transition: "opacity 200ms ease",
+                  marginLeft: "4px",
+                }}
+              >
+                Saved
+              </span>
+            )}
           </div>
           <button
             onClick={onClose}
@@ -303,14 +411,34 @@ export function TaskDetailPanel({
               </select>
             </div>
 
-            {/* Priority */}
+            {/* Priority - now editable */}
             <div>
               <div style={{ fontSize: "12px", color: "var(--text-tertiary)", marginBottom: "4px" }}>
                 Priority
               </div>
-              <div style={{ minHeight: "36px", display: "flex", alignItems: "center" }}>
-                <PriorityBadge priority={task.priority} />
-              </div>
+              <select
+                value={task.priority}
+                onChange={(e) => handlePriorityChange(Number(e.target.value))}
+                style={{
+                  width: "100%",
+                  minHeight: "36px",
+                  fontSize: "13px",
+                  fontWeight: 500,
+                  color: "var(--text-primary)",
+                  background: "var(--bg-elevated)",
+                  border: "1px solid var(--border)",
+                  borderRadius: "8px",
+                  padding: "0 8px",
+                  cursor: "pointer",
+                  outline: "none",
+                }}
+              >
+                {PRIORITY_OPTIONS.map((p) => (
+                  <option key={p.value} value={p.value}>
+                    {p.label}
+                  </option>
+                ))}
+              </select>
             </div>
 
             {/* Project */}
@@ -355,7 +483,7 @@ export function TaskDetailPanel({
             </div>
             <textarea
               value={descValue}
-              onChange={(e) => setDescValue(e.target.value)}
+              onChange={(e) => handleDescChange(e.target.value)}
               placeholder="Add a description..."
               style={{
                 width: "100%",
@@ -380,21 +508,65 @@ export function TaskDetailPanel({
               Activity
             </div>
 
-            {/* Empty state */}
-            <div
-              style={{
-                padding: "24px 16px",
-                textAlign: "center",
-                background: "var(--bg-base)",
-                borderRadius: "10px",
-                border: "1px solid var(--border)",
-                marginBottom: "12px",
-              }}
-            >
-              <p style={{ fontSize: "13px", color: "var(--text-tertiary)" }}>
-                No activity yet
-              </p>
-            </div>
+            {/* Comments list */}
+            {comments.length === 0 ? (
+              <div
+                style={{
+                  padding: "24px 16px",
+                  textAlign: "center",
+                  background: "var(--bg-base)",
+                  borderRadius: "10px",
+                  border: "1px solid var(--border)",
+                  marginBottom: "12px",
+                }}
+              >
+                <p style={{ fontSize: "13px", color: "var(--text-tertiary)" }}>
+                  No activity yet
+                </p>
+              </div>
+            ) : (
+              <div style={{ display: "flex", flexDirection: "column", gap: "8px", marginBottom: "12px" }}>
+                {comments.map((comment) => (
+                  <div
+                    key={comment.id}
+                    style={{
+                      padding: "12px",
+                      background: "var(--bg-base)",
+                      borderRadius: "10px",
+                      border: "1px solid var(--border)",
+                    }}
+                  >
+                    <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "6px" }}>
+                      <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                        <div
+                          style={{
+                            width: "24px",
+                            height: "24px",
+                            borderRadius: "9999px",
+                            background: "rgba(255,255,255,0.06)",
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            fontSize: "10px",
+                            fontWeight: 600,
+                            color: "var(--text-primary)",
+                          }}
+                        >
+                          U
+                        </div>
+                        <span style={{ fontSize: "12px", fontWeight: 500, color: "var(--text-secondary)" }}>You</span>
+                      </div>
+                      <span style={{ fontSize: "11px", color: "var(--text-tertiary)" }}>
+                        {formatCommentTime(comment.created_at)}
+                      </span>
+                    </div>
+                    <p style={{ fontSize: "13px", color: "var(--text-primary)", lineHeight: 1.5, margin: 0 }}>
+                      {comment.text}
+                    </p>
+                  </div>
+                ))}
+              </div>
+            )}
 
             {/* Comment input */}
             <div
@@ -427,6 +599,12 @@ export function TaskDetailPanel({
                 <input
                   value={commentValue}
                   onChange={(e) => setCommentValue(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" && !e.shiftKey) {
+                      e.preventDefault();
+                      handleCommentSubmit();
+                    }
+                  }}
                   placeholder="Add a comment..."
                   style={{
                     flex: 1,
@@ -442,7 +620,8 @@ export function TaskDetailPanel({
                   }}
                 />
                 <button
-                  disabled={!commentValue.trim()}
+                  onClick={handleCommentSubmit}
+                  disabled={!commentValue.trim() || submittingComment}
                   style={{
                     minWidth: "44px",
                     height: "44px",
@@ -453,9 +632,10 @@ export function TaskDetailPanel({
                     color: commentValue.trim() ? "white" : "var(--text-tertiary)",
                     border: "none",
                     borderRadius: "10px",
-                    cursor: commentValue.trim() ? "pointer" : "default",
+                    cursor: commentValue.trim() && !submittingComment ? "pointer" : "default",
                     transition: "all 200ms cubic-bezier(0.16,1,0.3,1)",
                     flexShrink: 0,
+                    opacity: submittingComment ? 0.6 : 1,
                   }}
                 >
                   <svg

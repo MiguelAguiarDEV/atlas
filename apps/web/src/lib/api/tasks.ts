@@ -35,11 +35,37 @@ export interface CreateTaskInput {
 
 export interface UpdateTaskInput {
   title?: string;
+  description?: string;
   status?: string;
   priority?: string;
   project_id?: number;
   estimated_mins?: number;
   due_at?: string;
+}
+
+export interface ApiTaskEvent {
+  id: number;
+  task_id: number;
+  event_type: string;
+  payload: Record<string, unknown>;
+  created_at: string;
+}
+
+export async function createTaskEvent(
+  taskId: number,
+  eventType: string,
+  payload: Record<string, unknown>,
+): Promise<ApiResponse<ApiTaskEvent>> {
+  return apiFetch<ApiTaskEvent>(`/api/v1/tasks/${taskId}/events`, {
+    method: "POST",
+    body: JSON.stringify({ event_type: eventType, payload }),
+  });
+}
+
+export async function listTaskEvents(
+  taskId: number,
+): Promise<ApiResponse<ApiTaskEvent[]>> {
+  return apiFetch<ApiTaskEvent[]>(`/api/v1/tasks/${taskId}/events`);
 }
 
 export interface TaskListParams {

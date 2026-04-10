@@ -42,6 +42,25 @@ function useIsDesktop() {
   return isDesktop;
 }
 
+type EnergyLevel = "high" | "medium" | "low";
+
+const ENERGY_STORAGE_KEY = "atlas-energy-level";
+
+function loadEnergy(): EnergyLevel | undefined {
+  if (typeof window === "undefined") return undefined;
+  try {
+    const stored = localStorage.getItem(ENERGY_STORAGE_KEY);
+    if (stored === "high" || stored === "medium" || stored === "low") return stored;
+  } catch { /* ignore */ }
+  return undefined;
+}
+
+function saveEnergy(level: EnergyLevel) {
+  try {
+    localStorage.setItem(ENERGY_STORAGE_KEY, level);
+  } catch { /* ignore */ }
+}
+
 export default function TodayPage() {
   const { text: greeting } = getGreeting();
   const dateStr = formatDate();
@@ -56,6 +75,17 @@ export default function TodayPage() {
   );
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [energyLevel, setEnergyLevel] = useState<EnergyLevel | undefined>(undefined);
+
+  // Load energy from localStorage on mount
+  useEffect(() => {
+    setEnergyLevel(loadEnergy());
+  }, []);
+
+  const handleEnergyChange = (level: EnergyLevel) => {
+    setEnergyLevel(level);
+    saveEnergy(level);
+  };
 
   const fetchData = useCallback(async () => {
     try {
@@ -274,7 +304,7 @@ export default function TodayPage() {
 
   const energySection = (
     <section className="animate-fade-in" style={{ paddingBottom: "32px" }}>
-      <EnergySelector />
+      <EnergySelector value={energyLevel} onChange={handleEnergyChange} />
     </section>
   );
 

@@ -1,10 +1,10 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { TaskCard, TaskDetailPanel, SearchIcon, ListIcon, BoardIcon, type TaskData } from "@atlas/ui";
-import { listTasks, updateTask } from "@/lib/api/tasks";
+import { TaskCard, TaskDetailPanel, SearchIcon, ListIcon, BoardIcon, type TaskData, type TaskComment } from "@atlas/ui";
+import { listTasks, updateTask, getTask, createTaskEvent, listTaskEvents } from "@/lib/api/tasks";
 import { listProjects, type ApiProject } from "@/lib/api/projects";
-import { toTaskData } from "@/lib/mappers";
+import { toTaskData, toPriorityString } from "@/lib/mappers";
 import Link from "next/link";
 
 type Filter = "all" | "inbox" | "in_progress" | "done";
@@ -48,6 +48,8 @@ export default function TasksPage() {
   const [error, setError] = useState<string | null>(null);
   const [selectedTask, setSelectedTask] = useState<TaskData | null>(null);
   const [panelOpen, setPanelOpen] = useState(false);
+  const [taskComments, setTaskComments] = useState<TaskComment[]>([]);
+  const [taskDescription, setTaskDescription] = useState<string>("");
 
   const fetchData = useCallback(async () => {
     try {
@@ -75,9 +77,30 @@ export default function TasksPage() {
     fetchData();
   }, [fetchData]);
 
-  const handleCardClick = (task: TaskData) => {
+  const handleCardClick = async (task: TaskData) => {
     setSelectedTask(task);
     setPanelOpen(true);
+    setTaskComments([]);
+    setTaskDescription("");
+
+    // Fetch task details and comments in parallel
+    try {
+      const [taskRes, eventsRes] = await Promise.all([
+        getTask(Number(task.id)),
+        listTaskEvents(Number(task.id)).catch(() => ({ data: [] as { id: number; task_id: number; event_type: string; payload: Record<string, unknown>; created_at: string }[] })),
+      ]);
+      setTaskDescription(taskRes.data.description ?? "");
+      const comments: TaskComment[] = (eventsRes.data ?? [])
+        .filter((e) => e.event_type === "comment")
+        .map((e) => ({
+          id: e.id,
+          text: (e.payload?.text as string) ?? "",
+          created_at: e.created_at,
+        }));
+      setTaskComments(comments);
+    } catch (err) {
+      console.error("Failed to load task details:", err);
+    }
   };
 
   const handlePanelClose = () => {
@@ -95,8 +118,45 @@ export default function TasksPage() {
       const apiUpdates: Record<string, unknown> = {};
       if (updates.status) apiUpdates.status = updates.status;
       if (updates.title) apiUpdates.title = updates.title;
+      if (updates.priority !== undefined) apiUpdates.priority = toPriorityString(updates.priority);
       await updateTask(Number(id), apiUpdates);
     } catch {
+      fetchData();
+    }
+  };
+
+  const handleDescriptionSave = async (id: string, description: string) => {
+    try {
+      await updateTask(Number(id), { description });
+    } catch (err) {
+      console.error("Failed to save description:", err);
+    }
+  };
+
+  const handleCommentAdd = async (id: string, text: string) => {
+    try {
+      const res = await createTaskEvent(Number(id), "comment", { text });
+      setTaskComments((prev) => [
+        ...prev,
+        { id: res.data.id, text, created_at: res.data.created_at },
+      ]);
+    } catch (err) {
+      console.error("Failed to add comment:", err);
+    }
+  };
+
+  const handlePriorityChange = async (id: string, priority: number) => {
+    // Optimistic update
+    setTasks((prev) =>
+      prev.map((t) => (t.id === id ? { ...t, priority: priority as 0 | 1 | 2 | 3 } : t)),
+    );
+    if (selectedTask?.id === id) {
+      setSelectedTask((prev) => (prev ? { ...prev, priority: priority as 0 | 1 | 2 | 3 } : prev));
+    }
+    try {
+      await updateTask(Number(id), { priority: toPriorityString(priority) });
+    } catch (err) {
+      console.error("Failed to update priority:", err);
       fetchData();
     }
   };
@@ -404,6 +464,11 @@ export default function TasksPage() {
         open={panelOpen}
         onClose={handlePanelClose}
         onUpdate={handleTaskUpdate}
+        onDescriptionSave={handleDescriptionSave}
+        onCommentAdd={handleCommentAdd}
+        onPriorityChange={handlePriorityChange}
+        comments={taskComments}
+        description={taskDescription}
       />
     </div>
   );

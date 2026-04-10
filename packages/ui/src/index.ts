@@ -5,7 +5,7 @@ export { EnergySelector } from "./energy-selector";
 export { TimerDisplay } from "./timer-display";
 export { BottomTabBar, type Tab } from "./bottom-tab-bar";
 export { Sidebar, type SidebarItem } from "./sidebar";
-export { TaskDetailPanel } from "./task-detail-panel";
+export { TaskDetailPanel, type TaskComment } from "./task-detail-panel";
 export { QuickCapture } from "./quick-capture";
 export { HabitCheck } from "./habit-check";
 export {

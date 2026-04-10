@@ -6,6 +6,12 @@ import { PlayIcon, StopIcon } from "./icons";
 interface TimerDisplayProps {
   taskName?: string;
   className?: string;
+  isRunning?: boolean;
+  initialSeconds?: number;
+  onStart?: () => void;
+  onStop?: () => void;
+  onReset?: () => void;
+  disabled?: boolean;
 }
 
 function formatTime(totalSeconds: number): string {
@@ -15,23 +21,45 @@ function formatTime(totalSeconds: number): string {
   return `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}:${String(s).padStart(2, "0")}`;
 }
 
-export function TimerDisplay({ taskName, className = "" }: TimerDisplayProps) {
-  const [seconds, setSeconds] = useState(0);
-  const [running, setRunning] = useState(false);
+export function TimerDisplay({ taskName, className = "", isRunning: externalRunning, initialSeconds, onStart, onStop, onReset, disabled }: TimerDisplayProps) {
+  const [seconds, setSeconds] = useState(initialSeconds ?? 0);
+  const [internalRunning, setInternalRunning] = useState(false);
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
+  // Use external running state if provided, otherwise internal
+  const running = externalRunning !== undefined ? externalRunning : internalRunning;
+
+  // Sync initialSeconds when it changes externally
+  useEffect(() => {
+    if (initialSeconds !== undefined) {
+      setSeconds(initialSeconds);
+    }
+  }, [initialSeconds]);
+
   const start = useCallback(() => {
-    setRunning(true);
-  }, []);
+    if (onStart) {
+      onStart();
+    } else {
+      setInternalRunning(true);
+    }
+  }, [onStart]);
 
   const stop = useCallback(() => {
-    setRunning(false);
-  }, []);
+    if (onStop) {
+      onStop();
+    } else {
+      setInternalRunning(false);
+    }
+  }, [onStop]);
 
   const reset = useCallback(() => {
-    setRunning(false);
-    setSeconds(0);
-  }, []);
+    if (onReset) {
+      onReset();
+    } else {
+      setInternalRunning(false);
+      setSeconds(0);
+    }
+  }, [onReset]);
 
   useEffect(() => {
     if (running) {
@@ -148,6 +176,7 @@ export function TimerDisplay({ taskName, className = "" }: TimerDisplayProps) {
         {/* P0-02: Large prominent play/stop button with inline styles */}
         <button
           onClick={running ? stop : start}
+          disabled={disabled}
           style={{
             width: "72px",
             height: "72px",
@@ -156,8 +185,9 @@ export function TimerDisplay({ taskName, className = "" }: TimerDisplayProps) {
             justifyContent: "center",
             borderRadius: "9999px",
             border: "none",
-            cursor: "pointer",
+            cursor: disabled ? "not-allowed" : "pointer",
             transition: "all 200ms cubic-bezier(0.16,1,0.3,1)",
+            opacity: disabled ? 0.5 : 1,
             background: running
               ? "rgba(229,72,77,0.15)"
               : "var(--accent)",
