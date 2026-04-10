@@ -141,7 +141,7 @@ export default function TasksPage() {
       {/* Search bar */}
       <div className="pb-4 animate-fade-in-up" style={{ animationDelay: "50ms" }}>
         <div
-          className="flex items-center gap-2.5 rounded-[var(--radius)] px-3.5 py-2.5"
+          className="flex items-center gap-2.5 rounded-[var(--radius)] px-3.5 py-2.5 min-h-[44px]"
           style={{
             background: "var(--surface)",
             border: "1px solid var(--border)",
@@ -174,7 +174,7 @@ export default function TasksPage() {
             <button
               key={f.key}
               onClick={() => setActiveFilter(f.key)}
-              className={`relative shrink-0 rounded-[var(--radius-full)] px-4 py-2 text-[13px] font-medium transition-all duration-200 ease-[cubic-bezier(0.16,1,0.3,1)] active:scale-[0.97] min-h-[36px] ${
+              className={`relative shrink-0 rounded-[var(--radius-full)] px-4 py-2 text-[13px] font-medium transition-all duration-200 ease-[cubic-bezier(0.16,1,0.3,1)] active:scale-[0.97] min-h-[44px] ${
                 isActive
                   ? "bg-[var(--surface)] text-[var(--foreground)] border border-[var(--border-highlight)]"
                   : "text-[var(--foreground-muted)] hover:text-[var(--foreground)] border border-transparent"
@@ -189,7 +189,7 @@ export default function TasksPage() {
               }
             >
               {f.label}
-              <span className="ml-1.5 text-[11px] opacity-60 tabular-nums">
+              <span className="ml-1.5 text-[12px] opacity-60 tabular-nums">
                 {count}
               </span>
               {/* Active underline accent */}

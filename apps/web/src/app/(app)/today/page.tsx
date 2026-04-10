@@ -198,7 +198,7 @@ export default function TodayPage() {
             </span>
           </h2>
           {totalEstimate > 0 && (
-            <span className="text-[11px] text-[var(--foreground-muted)]">
+            <span className="text-[12px] text-[var(--foreground-muted)]">
               ~{totalEstimate >= 60 ? `${Math.round(totalEstimate / 60)}h` : `${totalEstimate}m`}
             </span>
           )}

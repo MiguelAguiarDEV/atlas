@@ -120,7 +120,7 @@ export default function TimerPage() {
             >
               <ClockIcon size={18} className="text-[var(--accent)]" />
             </div>
-            <span className="text-[11px] text-[var(--foreground-muted)]">
+            <span className="text-[12px] text-[var(--foreground-muted)]">
               Focus time
             </span>
             <span
@@ -152,7 +152,7 @@ export default function TimerPage() {
                 <path d="M12 20V10M18 20V4M6 20v-4" />
               </svg>
             </div>
-            <span className="text-[11px] text-[var(--foreground-muted)]">
+            <span className="text-[12px] text-[var(--foreground-muted)]">
               Sessions
             </span>
             <span
@@ -195,7 +195,7 @@ export default function TimerPage() {
                     <span className="truncate text-[13px] text-[var(--foreground)]">
                       {task?.title ?? "Unknown task"}
                     </span>
-                    <span className="text-[11px] text-[var(--foreground-muted)]">
+                    <span className="text-[12px] text-[var(--foreground-muted)]">
                       {time}
                     </span>
                   </div>

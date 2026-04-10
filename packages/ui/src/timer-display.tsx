@@ -109,7 +109,7 @@ export function TimerDisplay({ taskName, className = "" }: TimerDisplayProps) {
             {formatTime(seconds)}
           </span>
           {running && (
-            <span className="flex items-center gap-1.5 text-[11px] text-[var(--accent)]">
+            <span className="flex items-center gap-1.5 text-[12px] text-[var(--accent)]">
               <span className="h-1.5 w-1.5 rounded-full bg-[var(--accent)] pulsing-dot" />
               Focusing
             </span>
@@ -134,7 +134,7 @@ export function TimerDisplay({ taskName, className = "" }: TimerDisplayProps) {
         {seconds > 0 && !running && (
           <button
             onClick={reset}
-            className="rounded-[var(--radius-sm)] px-4 py-2.5 text-[13px] font-medium text-[var(--foreground-muted)] transition-all duration-200 ease-[cubic-bezier(0.16,1,0.3,1)] hover:text-[var(--foreground)] hover:bg-[rgba(255,255,255,0.06)] active:scale-[0.97]"
+            className="rounded-[var(--radius-sm)] px-4 py-2.5 text-[13px] font-medium text-[var(--foreground-muted)] transition-all duration-200 ease-[cubic-bezier(0.16,1,0.3,1)] hover:text-[var(--foreground)] hover:bg-[rgba(255,255,255,0.06)] active:scale-[0.97] min-h-[44px]"
           >
             Reset
           </button>

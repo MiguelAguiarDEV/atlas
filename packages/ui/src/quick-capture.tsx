@@ -44,12 +44,12 @@ export function QuickCapture({ onCapture, className = "" }: QuickCaptureProps) {
             if (e.key === "Enter") handleSubmit();
           }}
           placeholder="Quick capture..."
-          className="flex-1 bg-transparent text-[13px] text-[var(--foreground)] outline-none placeholder:text-[var(--foreground-muted)]"
+          className="flex-1 min-h-[44px] bg-transparent text-[13px] text-[var(--foreground)] outline-none placeholder:text-[var(--foreground-muted)]"
         />
         <button
           onClick={handleSubmit}
           disabled={!value.trim()}
-          className="flex h-8 w-8 items-center justify-center rounded-[var(--radius-xs)] bg-[var(--accent)] text-white transition-all duration-200 ease-[cubic-bezier(0.16,1,0.3,1)] active:scale-[0.90] disabled:opacity-30 shadow-[0_0_12px_var(--accent-glow)]"
+          className="flex h-[44px] w-[44px] items-center justify-center rounded-[var(--radius-xs)] bg-[var(--accent)] text-white transition-all duration-200 ease-[cubic-bezier(0.16,1,0.3,1)] active:scale-[0.90] disabled:opacity-30 shadow-[0_0_12px_var(--accent-glow)]"
           aria-label="Add task"
         >
           <PlusIcon size={16} />

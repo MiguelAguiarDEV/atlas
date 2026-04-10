@@ -64,7 +64,7 @@ export function BottomTabBar({
               <span className="flex h-6 w-6 items-center justify-center">
                 {tab.icon}
               </span>
-              <span className="text-[10px] font-medium">{tab.label}</span>
+              <span className="text-[12px] font-medium">{tab.label}</span>
             </a>
           );
         })}

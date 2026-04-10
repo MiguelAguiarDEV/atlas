@@ -70,7 +70,7 @@ export function HabitCheck({
       {/* Streak badge */}
       {streak > 0 && (
         <span
-          className="rounded-[var(--radius-full)] px-2 py-0.5 text-[11px] font-medium tabular-nums"
+          className="rounded-[var(--radius-full)] px-2 py-0.5 text-[12px] font-medium tabular-nums"
           style={{
             background: checked
               ? "rgba(34,197,94,0.15)"

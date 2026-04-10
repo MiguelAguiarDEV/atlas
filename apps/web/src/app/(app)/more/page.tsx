@@ -90,14 +90,14 @@ export default function MorePage() {
                 <span className="text-[13px] font-medium text-[var(--foreground)]">
                   {item.label}
                 </span>
-                <span className="text-[11px] text-[var(--foreground-muted)]">
+                <span className="text-[12px] text-[var(--foreground-muted)]">
                   {item.description}
                 </span>
               </div>
 
               {/* Count badge */}
               {item.count > 0 && (
-                <span className="flex h-5 min-w-5 items-center justify-center rounded-[var(--radius-full)] bg-[var(--accent)] px-1.5 text-[11px] font-medium text-white shadow-[0_0_8px_var(--accent-glow)]">
+                <span className="flex h-5 min-w-5 items-center justify-center rounded-[var(--radius-full)] bg-[var(--accent)] px-1.5 text-[12px] font-medium text-white shadow-[0_0_8px_var(--accent-glow)]">
                   {item.count}
                 </span>
               )}

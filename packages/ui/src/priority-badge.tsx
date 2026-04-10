@@ -18,7 +18,7 @@ export function PriorityBadge({ priority, className = "" }: PriorityBadgeProps) 
   const { label, dotColor, textColor, pulse } = config[priority];
   return (
     <span
-      className={`inline-flex items-center gap-1.5 text-[11px] font-medium ${textColor} ${className}`}
+      className={`inline-flex items-center gap-1.5 text-[12px] font-medium ${textColor} ${className}`}
     >
       <span
         className={`h-1.5 w-1.5 rounded-full ${dotColor} ${pulse ? "pulse-dot" : ""}`}
