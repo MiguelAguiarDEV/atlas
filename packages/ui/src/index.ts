@@ -31,4 +31,5 @@ export {
   RepeatIcon,
   SettingsIcon,
   SearchIcon,
+  ArrowLeftIcon,
 } from "./icons";

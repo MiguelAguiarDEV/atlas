@@ -59,7 +59,7 @@ const MENU_ITEMS = [
     count: 0,
     iconBg: "var(--accent-subtle)",
     iconColor: "var(--accent)",
-    href: "/tasks?filter=all",
+    href: "/projects",
   },
   {
     label: "Habits",
