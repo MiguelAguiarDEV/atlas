@@ -55,7 +55,7 @@ export function TimerDisplay({ taskName, className = "" }: TimerDisplayProps) {
   const offset = circumference * (1 - progress);
 
   return (
-    <div className={`flex flex-col items-center ${className}`} style={{ gap: "32px", maxWidth: "100%", overflow: "hidden" }}>
+    <div className={`${className}`} style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "24px", maxWidth: "100%", overflow: "hidden" }}>
       {/* Task name */}
       {taskName && (
         <p style={{
