@@ -1,10 +1,11 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { TaskCard, SearchIcon, ListIcon, type TaskData } from "@atlas/ui";
+import { TaskCard, TaskDetailPanel, SearchIcon, ListIcon, BoardIcon, type TaskData } from "@atlas/ui";
 import { listTasks, updateTask } from "@/lib/api/tasks";
 import { listProjects, type ApiProject } from "@/lib/api/projects";
 import { toTaskData } from "@/lib/mappers";
+import Link from "next/link";
 
 type Filter = "all" | "inbox" | "in_progress" | "done";
 
@@ -45,6 +46,8 @@ export default function TasksPage() {
   const [tasks, setTasks] = useState<TaskData[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [selectedTask, setSelectedTask] = useState<TaskData | null>(null);
+  const [panelOpen, setPanelOpen] = useState(false);
 
   const fetchData = useCallback(async () => {
     try {
@@ -71,6 +74,32 @@ export default function TasksPage() {
   useEffect(() => {
     fetchData();
   }, [fetchData]);
+
+  const handleCardClick = (task: TaskData) => {
+    setSelectedTask(task);
+    setPanelOpen(true);
+  };
+
+  const handlePanelClose = () => {
+    setPanelOpen(false);
+  };
+
+  const handleTaskUpdate = async (id: string, updates: Partial<TaskData>) => {
+    setTasks((prev) =>
+      prev.map((t) => (t.id === id ? { ...t, ...updates } : t)),
+    );
+    if (selectedTask?.id === id) {
+      setSelectedTask((prev) => (prev ? { ...prev, ...updates } : prev));
+    }
+    try {
+      const apiUpdates: Record<string, unknown> = {};
+      if (updates.status) apiUpdates.status = updates.status;
+      if (updates.title) apiUpdates.title = updates.title;
+      await updateTask(Number(id), apiUpdates);
+    } catch {
+      fetchData();
+    }
+  };
 
   const handleToggle = async (id: string) => {
     const task = tasks.find((t) => t.id === id);
@@ -163,13 +192,64 @@ export default function TasksPage() {
   }
 
   /* Shared pieces */
+  const viewToggle = (
+    <div style={{ display: "flex", alignItems: "center", gap: "4px", background: "var(--bg-base)", border: "1px solid var(--border)", borderRadius: "10px", padding: "3px" }}>
+      <div
+        style={{
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          gap: "6px",
+          padding: "6px 12px",
+          minHeight: "32px",
+          fontSize: "13px",
+          fontWeight: 600,
+          borderRadius: "8px",
+          background: "var(--bg-elevated)",
+          color: "var(--text-primary)",
+          border: "1px solid var(--border-hover)",
+          cursor: "default",
+        }}
+      >
+        <ListIcon size={14} />
+        List
+      </div>
+      <Link
+        href="/tasks/board"
+        style={{
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          gap: "6px",
+          padding: "6px 12px",
+          minHeight: "32px",
+          fontSize: "13px",
+          fontWeight: 500,
+          borderRadius: "8px",
+          background: "transparent",
+          color: "var(--text-secondary)",
+          border: "1px solid transparent",
+          cursor: "pointer",
+          textDecoration: "none",
+          transition: "all 200ms cubic-bezier(0.16,1,0.3,1)",
+        }}
+      >
+        <BoardIcon size={14} />
+        Board
+      </Link>
+    </div>
+  );
+
   const headerBlock = (
     <header className="animate-fade-in-up" style={{ paddingBottom: "16px" }}>
-      <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between" }}>
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
         <h1 className="text-h1" style={{ color: "var(--text-primary)" }}>Tasks</h1>
-        <span style={{ fontSize: "12px", fontWeight: 500, color: "var(--text-secondary)", fontVariantNumeric: "tabular-nums" }}>
-          {tasks.length} total
-        </span>
+        <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+          <span style={{ fontSize: "12px", fontWeight: 500, color: "var(--text-secondary)", fontVariantNumeric: "tabular-nums" }}>
+            {tasks.length} total
+          </span>
+          {viewToggle}
+        </div>
       </div>
     </header>
   );
@@ -272,6 +352,7 @@ export default function TasksPage() {
       key={task.id}
       className="animate-fade-in-up"
       style={{ animationDelay: `${150 + i * 40}ms` }}
+      onClick={() => handleCardClick(task)}
     >
       <TaskCard
         task={task}
@@ -316,6 +397,14 @@ export default function TasksPage() {
           {taskCards}
         </div>
       )}
+
+      {/* Detail panel */}
+      <TaskDetailPanel
+        task={selectedTask}
+        open={panelOpen}
+        onClose={handlePanelClose}
+        onUpdate={handleTaskUpdate}
+      />
     </div>
   );
 }

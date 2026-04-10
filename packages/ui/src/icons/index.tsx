@@ -210,3 +210,21 @@ export function SearchIcon({ size = 24, ...props }: IconProps) {
     </svg>
   );
 }
+
+export function BoardIcon({ size = 24, ...props }: IconProps) {
+  return (
+    <svg {...defaultProps(size)} {...props}>
+      <rect x="3" y="3" width="5" height="18" rx="1" />
+      <rect x="10" y="3" width="5" height="12" rx="1" />
+      <rect x="17" y="3" width="5" height="15" rx="1" />
+    </svg>
+  );
+}
+
+export function CloseIcon({ size = 24, ...props }: IconProps) {
+  return (
+    <svg {...defaultProps(size)} {...props}>
+      <path d="M18 6L6 18M6 6l12 12" />
+    </svg>
+  );
+}
