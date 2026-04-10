@@ -68,7 +68,7 @@ export default function TimerPage() {
 
   const containerStyle: React.CSSProperties = isDesktop
     ? {}
-    : { padding: "32px 16px 120px 16px", maxWidth: "512px", margin: "0 auto" };
+    : { padding: "32px 16px 120px 16px", maxWidth: "100%", margin: "0 auto", overflowX: "hidden" as const };
 
   // Loading state
   if (loading) {
