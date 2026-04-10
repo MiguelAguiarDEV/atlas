@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef, type DragEvent } from "react";
 import { TaskDetailPanel, type TaskData } from "@atlas/ui";
 import { listTasks, updateTask } from "@/lib/api/tasks";
 import { listProjects, type ApiProject } from "@/lib/api/projects";
@@ -37,9 +37,17 @@ function useIsDesktop() {
 function CompactCard({
   task,
   onClick,
+  isDesktop,
+  onDragStart,
+  onDragEnd,
+  onStatusChange,
 }: {
   task: TaskData;
   onClick: () => void;
+  isDesktop: boolean;
+  onDragStart: (e: DragEvent<HTMLDivElement>, task: TaskData) => void;
+  onDragEnd: (e: DragEvent<HTMLDivElement>) => void;
+  onStatusChange?: (taskId: string, newStatus: string) => void;
 }) {
   const priorityDotColor: Record<number, string> = {
     0: "var(--destructive)",
@@ -51,13 +59,16 @@ function CompactCard({
   return (
     <div
       onClick={onClick}
+      draggable={isDesktop}
+      onDragStart={(e) => onDragStart(e, task)}
+      onDragEnd={onDragEnd}
       style={{
         background: "var(--bg-elevated)",
         border: "1px solid var(--border)",
         borderRadius: "10px",
         padding: "12px",
-        cursor: "pointer",
-        transition: "border-color 200ms cubic-bezier(0.16,1,0.3,1)",
+        cursor: isDesktop ? "grab" : "pointer",
+        transition: "border-color 200ms cubic-bezier(0.16,1,0.3,1), opacity 200ms ease",
       }}
       onMouseEnter={(e) => {
         (e.currentTarget as HTMLElement).style.borderColor = "var(--border-hover)";
@@ -83,7 +94,7 @@ function CompactCard({
         {task.title}
       </div>
 
-      {/* Bottom row: priority dot + project name */}
+      {/* Bottom row: priority dot + project name + mobile status selector */}
       <div
         style={{
           display: "flex",
@@ -110,10 +121,42 @@ function CompactCard({
               overflow: "hidden",
               textOverflow: "ellipsis",
               whiteSpace: "nowrap",
+              flex: 1,
             }}
           >
             {task.project}
           </span>
+        )}
+        {/* Mobile-only status dropdown */}
+        {!isDesktop && onStatusChange && (
+          <select
+            value={task.status ?? "inbox"}
+            onChange={(e) => {
+              e.stopPropagation();
+              onStatusChange(task.id, e.target.value);
+            }}
+            onClick={(e) => e.stopPropagation()}
+            style={{
+              marginLeft: "auto",
+              fontSize: "11px",
+              fontWeight: 500,
+              color: "var(--text-secondary)",
+              background: "var(--bg-surface)",
+              border: "1px solid var(--border)",
+              borderRadius: "6px",
+              padding: "4px 6px",
+              cursor: "pointer",
+              appearance: "auto",
+              minWidth: "44px",
+              minHeight: "28px",
+            }}
+          >
+            {STATUSES.map((s) => (
+              <option key={s.key} value={s.key}>
+                {s.label}
+              </option>
+            ))}
+          </select>
         )}
       </div>
     </div>
@@ -127,6 +170,10 @@ export default function BoardPage() {
   const [error, setError] = useState<string | null>(null);
   const [selectedTask, setSelectedTask] = useState<TaskData | null>(null);
   const [panelOpen, setPanelOpen] = useState(false);
+
+  // Drag-and-drop state
+  const draggedTaskRef = useRef<TaskData | null>(null);
+  const [dragOverColumn, setDragOverColumn] = useState<string | null>(null);
 
   const fetchData = useCallback(async () => {
     try {
@@ -182,6 +229,68 @@ export default function BoardPage() {
       fetchData();
     }
   };
+
+  // --- Drag-and-drop handlers (desktop) ---
+  const handleDragStart = useCallback(
+    (e: DragEvent<HTMLDivElement>, task: TaskData) => {
+      draggedTaskRef.current = task;
+      e.dataTransfer.effectAllowed = "move";
+      e.dataTransfer.setData("text/plain", task.id);
+      // Visual: reduce opacity on the dragged card
+      requestAnimationFrame(() => {
+        (e.target as HTMLElement).style.opacity = "0.5";
+      });
+    },
+    [],
+  );
+
+  const handleDragEnd = useCallback(
+    (e: DragEvent<HTMLDivElement>) => {
+      (e.target as HTMLElement).style.opacity = "1";
+      draggedTaskRef.current = null;
+      setDragOverColumn(null);
+    },
+    [],
+  );
+
+  const handleColumnDragOver = useCallback(
+    (e: DragEvent<HTMLDivElement>, statusKey: string) => {
+      e.preventDefault();
+      e.dataTransfer.dropEffect = "move";
+      setDragOverColumn(statusKey);
+    },
+    [],
+  );
+
+  const handleColumnDragLeave = useCallback(
+    (e: DragEvent<HTMLDivElement>) => {
+      // Only clear if we actually left the column (not entering a child)
+      if (!e.currentTarget.contains(e.relatedTarget as Node)) {
+        setDragOverColumn(null);
+      }
+    },
+    [],
+  );
+
+  const handleColumnDrop = useCallback(
+    (e: DragEvent<HTMLDivElement>, targetStatus: string) => {
+      e.preventDefault();
+      setDragOverColumn(null);
+      const task = draggedTaskRef.current;
+      if (!task || task.status === targetStatus) return;
+      // Use the existing handleTaskUpdate for optimistic update + API call
+      handleTaskUpdate(task.id, { status: targetStatus });
+    },
+    [handleTaskUpdate],
+  );
+
+  // --- Mobile status change handler ---
+  const handleMobileStatusChange = useCallback(
+    (taskId: string, newStatus: string) => {
+      handleTaskUpdate(taskId, { status: newStatus });
+    },
+    [handleTaskUpdate],
+  );
 
   // Group tasks by status
   const grouped = new Map<string, TaskData[]>();
@@ -277,9 +386,13 @@ export default function BoardPage() {
       >
         {STATUSES.map((status, colIdx) => {
           const columnTasks = grouped.get(status.key) ?? [];
+          const isDragOver = dragOverColumn === status.key;
           return (
             <div
               key={status.key}
+              onDragOver={(e) => handleColumnDragOver(e, status.key)}
+              onDragLeave={handleColumnDragLeave}
+              onDrop={(e) => handleColumnDrop(e, status.key)}
               style={{
                 width: "280px",
                 minWidth: "280px",
@@ -287,8 +400,11 @@ export default function BoardPage() {
                 display: "flex",
                 flexDirection: "column",
                 scrollSnapAlign: "start",
-                background: "var(--bg-base)",
+                background: isDragOver ? "rgba(94,106,210,0.05)" : "var(--bg-base)",
                 borderRight: colIdx < STATUSES.length - 1 ? "1px solid var(--border)" : "none",
+                border: isDragOver ? "2px dashed var(--accent)" : undefined,
+                borderRadius: isDragOver ? "8px" : undefined,
+                transition: "background 150ms ease, border 150ms ease",
               }}
             >
               {/* Column header */}
@@ -344,6 +460,7 @@ export default function BoardPage() {
                   display: "flex",
                   flexDirection: "column",
                   gap: "8px",
+                  minHeight: "60px",
                 }}
               >
                 {columnTasks.length === 0 ? (
@@ -352,17 +469,22 @@ export default function BoardPage() {
                       padding: "24px 12px",
                       textAlign: "center",
                       fontSize: "12px",
-                      color: "var(--text-tertiary)",
+                      color: isDragOver ? "var(--accent)" : "var(--text-tertiary)",
+                      transition: "color 150ms ease",
                     }}
                   >
-                    No tasks
+                    {isDragOver ? "Drop here" : "No tasks"}
                   </div>
                 ) : (
                   columnTasks.map((task) => (
                     <CompactCard
                       key={task.id}
                       task={task}
+                      isDesktop={isDesktop}
                       onClick={() => handleCardClick(task)}
+                      onDragStart={handleDragStart}
+                      onDragEnd={handleDragEnd}
+                      onStatusChange={handleMobileStatusChange}
                     />
                   ))
                 )}

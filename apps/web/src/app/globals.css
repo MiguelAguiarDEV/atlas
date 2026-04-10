@@ -368,3 +368,12 @@ body {
 .sidebar-nav-item:hover {
   background: rgba(255, 255, 255, 0.06);
 }
+
+/* --- Drag-and-Drop Visual Feedback --- */
+[draggable="true"] {
+  cursor: grab;
+}
+
+[draggable="true"]:active {
+  cursor: grabbing;
+}
