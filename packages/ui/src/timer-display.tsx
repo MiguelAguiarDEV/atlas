@@ -121,7 +121,7 @@ export function TimerDisplay({ taskName, className = "" }: TimerDisplayProps) {
       <div className="flex items-center gap-4">
         <button
           onClick={running ? stop : start}
-          className={`flex h-16 w-16 items-center justify-center rounded-full transition-all duration-200 ease-[cubic-bezier(0.16,1,0.3,1)] active:scale-[0.93] ${
+          style={{width:"64px",height:"64px"}} className={`flex items-center justify-center rounded-full transition-all duration-200 ease-[cubic-bezier(0.16,1,0.3,1)] active:scale-[0.93] ${
             running
               ? "bg-[var(--danger)]/15 text-[var(--danger)] shadow-[0_0_20px_var(--danger-glow)]"
               : "bg-[var(--accent)]/15 text-[var(--accent)] shadow-[0_0_20px_var(--accent-glow)]"

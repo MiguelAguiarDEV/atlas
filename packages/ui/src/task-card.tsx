@@ -58,7 +58,7 @@ export function TaskCard({
       {/* Checkbox */}
       <button
         onClick={handleToggle}
-        className="flex h-[44px] w-[44px] shrink-0 items-center justify-center rounded-full transition-all duration-200 ease-[cubic-bezier(0.16,1,0.3,1)]"
+        style={{width:"44px",height:"44px",minWidth:"44px",minHeight:"44px"}} className="flex shrink-0 items-center justify-center rounded-full transition-all duration-200 ease-[cubic-bezier(0.16,1,0.3,1)]"
         aria-label={checked ? "Mark incomplete" : "Mark complete"}
       >
         <span
