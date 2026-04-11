@@ -123,7 +123,7 @@ export default function ProjectsPage() {
             Loading...
           </p>
         </header>
-        <div style={{ display: "grid", gridTemplateColumns: isDesktop ? "minmax(0, 1fr) minmax(0, 1fr)" : "minmax(0, 1fr)", gap: "12px" }}>
+        <div style={{ display: "grid", gridTemplateColumns: isDesktop ? "repeat(auto-fill, minmax(320px, 1fr))" : "minmax(0, 1fr)", gap: "16px" }}>
           {[1, 2, 3, 4].map((i) => (
             <div
               key={i}
@@ -420,14 +420,17 @@ export default function ProjectsPage() {
       {/* Create form */}
       {createForm}
 
-      {/* Project grid */}
+      {/* Project grid — mobile: 1 col, desktop: responsive auto-fill (2/3/4 cols) */}
       {projects.length === 0 ? (
         emptyState
       ) : (
         <div style={{
           display: "grid",
-          gridTemplateColumns: isDesktop ? "minmax(0, 1fr) minmax(0, 1fr)" : "minmax(0, 1fr)",
-          gap: "12px",
+          gridTemplateColumns: isDesktop
+            ? "repeat(auto-fill, minmax(320px, 1fr))"
+            : "minmax(0, 1fr)",
+          gap: "16px",
+          alignItems: "start",
         }}>
           {projectCards}
         </div>

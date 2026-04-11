@@ -569,8 +569,8 @@ export default function BoardPage() {
               onDragLeave={handleColumnDragLeave}
               onDrop={(e) => handleColumnDrop(e, status.key)}
               style={{
-                width: "280px",
-                minWidth: "280px",
+                width: isDesktop ? "320px" : "280px",
+                minWidth: isDesktop ? "320px" : "280px",
                 flexShrink: 0,
                 display: "flex",
                 flexDirection: "column",

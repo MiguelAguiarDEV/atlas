@@ -348,12 +348,19 @@ export default function TodayPage() {
           <QuickCapture onCapture={handleCapture} />
         </div>
 
-        {/* Two column layout */}
-        <div style={{ display: "flex", gap: "32px" }}>
-          <div style={{ flex: "0 0 60%", minWidth: 0 }}>
+        {/* Responsive multi-column grid: 2 cols (tablet/desktop) -> 3 cols (wide >=1600px) */}
+        <div
+          style={{
+            display: "grid",
+            gridTemplateColumns: "minmax(0, 2fr) minmax(320px, 1fr)",
+            gap: "32px",
+            alignItems: "start",
+          }}
+        >
+          <div style={{ minWidth: 0 }}>
             {tasksSection}
           </div>
-          <div style={{ flex: "0 0 calc(40% - 32px)", minWidth: 0 }}>
+          <div style={{ minWidth: 0, display: "flex", flexDirection: "column", gap: "0" }}>
             {energySection}
             {habitsSection}
             {statsSection}

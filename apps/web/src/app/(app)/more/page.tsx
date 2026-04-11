@@ -84,8 +84,8 @@ export default function MorePage() {
       </header>
 
       {isDesktop ? (
-        /* Desktop: 3-column grid cards */
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "16px" }}>
+        /* Desktop: responsive auto-fill grid (3 col ~1280, 4 col ~1920) */
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(320px, 1fr))", gap: "16px", alignItems: "start" }}>
           {MENU_ITEMS.map((item, i) => {
             const Icon = item.icon;
             return (

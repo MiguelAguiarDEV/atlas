@@ -398,11 +398,22 @@ export default function TasksPage() {
         />
       </div>
 
-      {/* Task list */}
+      {/* Task list — mobile: single column stack; desktop: responsive auto-fit grid */}
       {filtered.length === 0 ? (
         emptyState
+      ) : isDesktop ? (
+        <div
+          style={{
+            display: "grid",
+            gridTemplateColumns: "repeat(auto-fill, minmax(340px, 1fr))",
+            gap: "12px",
+            alignItems: "start",
+          }}
+        >
+          {taskCards}
+        </div>
       ) : (
-        <div style={{ display: "flex", flexDirection: "column", gap: "8px", maxWidth: isDesktop ? "760px" : undefined }}>
+        <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
           {taskCards}
         </div>
       )}

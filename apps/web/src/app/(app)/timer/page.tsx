@@ -526,7 +526,143 @@ export default function TimerPage() {
     </div>
   );
 
+  const timerErrorBanner = timerError ? (
+    <div
+      className="animate-fade-in"
+      style={{
+        padding: "10px 16px",
+        marginBottom: "16px",
+        borderRadius: "10px",
+        background: "rgba(229,72,77,0.1)",
+        border: "1px solid rgba(229,72,77,0.2)",
+        fontSize: "13px",
+        color: "var(--destructive)",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "space-between",
+      }}
+    >
+      <span>{timerError}</span>
+      <button
+        onClick={() => setTimerError(null)}
+        style={{
+          background: "none",
+          border: "none",
+          color: "var(--destructive)",
+          cursor: "pointer",
+          fontSize: "16px",
+          padding: "0 4px",
+        }}
+      >
+        x
+      </button>
+    </div>
+  ) : null;
+
+  const timerRingSection = (
+    <section
+      className="animate-fade-in-up"
+      style={{
+        display: "flex",
+        justifyContent: "center",
+        paddingBottom: isDesktop ? "0" : "40px",
+      }}
+    >
+      <div style={{ width: isDesktop ? "320px" : undefined }}>
+        <TimerDisplay
+          taskName={currentTask?.title ?? (timerRunning ? "Timer running" : "No task selected")}
+          isRunning={timerRunning}
+          initialSeconds={timerSeconds}
+          onStart={handleStart}
+          onStop={handleStop}
+          onReset={handleReset}
+          disabled={timerLoading}
+        />
+      </div>
+    </section>
+  );
+
+  const currentTaskIndicator = !timerRunning && !showTaskSelector ? (
+    <div
+      className="animate-fade-in"
+      style={{
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        paddingBottom: "24px",
+      }}
+    >
+      <button
+        onClick={() => setShowTaskSelector(true)}
+        style={{
+          padding: "12px 18px",
+          minHeight: "44px",
+          fontSize: "13px",
+          fontWeight: 500,
+          color: "var(--text-secondary)",
+          background: "var(--bg-elevated)",
+          border: "1px solid var(--border)",
+          borderRadius: "10px",
+          cursor: "pointer",
+          transition: "all 200ms cubic-bezier(0.16,1,0.3,1)",
+        }}
+      >
+        {currentTask ? `Switch task (${currentTask.title.slice(0, 30)}${currentTask.title.length > 30 ? "..." : ""})` : "Select a task"}
+      </button>
+    </div>
+  ) : null;
+
+  const statsSectionNode = (
+    <section className="animate-fade-in-up" style={{ paddingBottom: "32px" }}>
+      {statsCards}
+    </section>
+  );
+
+  const recentSessionsSection = (
+    <section className="animate-fade-in-up">
+      <h2 style={{ fontSize: "14px", fontWeight: 600, color: "var(--text-primary)", marginBottom: "12px" }}>
+        Recent Sessions
+      </h2>
+      {recentSessionsContent}
+    </section>
+  );
+
   /* P1-06: Single component tree */
+  if (isDesktop) {
+    return (
+      <div className="animate-fade-in">
+        <header className="animate-fade-in-up" style={{ paddingBottom: "24px" }}>
+          <h1 className="text-h1" style={{ color: "var(--text-primary)" }}>Timer</h1>
+          <p style={{ marginTop: "4px", fontSize: "12px", fontWeight: 500, color: "var(--text-secondary)" }}>
+            Track your focus time
+          </p>
+        </header>
+
+        {timerErrorBanner}
+        {taskSelector}
+
+        {/* Two column desktop layout: ring on left, stats + sessions on right */}
+        <div
+          style={{
+            display: "grid",
+            gridTemplateColumns: "minmax(340px, 1fr) minmax(0, 2fr)",
+            gap: "48px",
+            alignItems: "start",
+          }}
+        >
+          <div style={{ minWidth: 0, display: "flex", flexDirection: "column", gap: "16px" }}>
+            {timerRingSection}
+            {currentTaskIndicator}
+          </div>
+          <div style={{ minWidth: 0 }}>
+            {statsSectionNode}
+            {recentSessionsSection}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="animate-fade-in" style={containerStyle}>
       <header className="animate-fade-in-up" style={{ paddingBottom: "24px" }}>
@@ -536,108 +672,12 @@ export default function TimerPage() {
         </p>
       </header>
 
-      {/* Timer error */}
-      {timerError && (
-        <div
-          className="animate-fade-in"
-          style={{
-            padding: "10px 16px",
-            marginBottom: "16px",
-            borderRadius: "10px",
-            background: "rgba(229,72,77,0.1)",
-            border: "1px solid rgba(229,72,77,0.2)",
-            fontSize: "13px",
-            color: "var(--destructive)",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "space-between",
-          }}
-        >
-          <span>{timerError}</span>
-          <button
-            onClick={() => setTimerError(null)}
-            style={{
-              background: "none",
-              border: "none",
-              color: "var(--destructive)",
-              cursor: "pointer",
-              fontSize: "16px",
-              padding: "0 4px",
-            }}
-          >
-            x
-          </button>
-        </div>
-      )}
-
-      {/* Task selector */}
+      {timerErrorBanner}
       {taskSelector}
-
-      {/* Timer - centered, optionally wider on desktop */}
-      <section
-        className="animate-fade-in-up"
-        style={{
-          display: "flex",
-          justifyContent: "center",
-          paddingBottom: "40px",
-        }}
-      >
-        <div style={{ width: isDesktop ? "300px" : undefined }}>
-          <TimerDisplay
-            taskName={currentTask?.title ?? (timerRunning ? "Timer running" : "No task selected")}
-            isRunning={timerRunning}
-            initialSeconds={timerSeconds}
-            onStart={handleStart}
-            onStop={handleStop}
-            onReset={handleReset}
-            disabled={timerLoading}
-          />
-        </div>
-      </section>
-
-      {/* Current task indicator */}
-      {!timerRunning && !showTaskSelector && (
-        <div
-          className="animate-fade-in"
-          style={{
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            paddingBottom: "24px",
-          }}
-        >
-          <button
-            onClick={() => setShowTaskSelector(true)}
-            style={{
-              padding: "12px 18px",
-              minHeight: "44px",
-              fontSize: "13px",
-              fontWeight: 500,
-              color: "var(--text-secondary)",
-              background: "var(--bg-elevated)",
-              border: "1px solid var(--border)",
-              borderRadius: "10px",
-              cursor: "pointer",
-              transition: "all 200ms cubic-bezier(0.16,1,0.3,1)",
-            }}
-          >
-            {currentTask ? `Switch task (${currentTask.title.slice(0, 30)}${currentTask.title.length > 30 ? "..." : ""})` : "Select a task"}
-          </button>
-        </div>
-      )}
-
-      {/* Stats */}
-      <section className="animate-fade-in-up" style={{ paddingBottom: "32px" }}>
-        {statsCards}
-      </section>
-
-      {/* Recent sessions */}
-      <section className="animate-fade-in-up">
-        <h2 style={{ fontSize: "14px", fontWeight: 600, color: "var(--text-primary)", marginBottom: "12px" }}>
-          Recent Sessions
-        </h2>
-        {recentSessionsContent}
-      </section>
+      {timerRingSection}
+      {currentTaskIndicator}
+      {statsSectionNode}
+      {recentSessionsSection}
     </div>
   );
 }

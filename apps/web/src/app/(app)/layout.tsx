@@ -83,7 +83,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
       <div style={{ display: "flex", minHeight: "100dvh", background: "var(--bg-base)", position: "relative" }}>
         <AmbientOrbs />
         <Sidebar items={navItems} activeItem={activeTab} />
-        <main style={{ marginLeft: "240px", flex: 1, padding: "32px 48px", maxWidth: "1100px", position: "relative", zIndex: 1 }}>
+        <main style={{ marginLeft: "240px", flex: 1, minWidth: 0, padding: "32px 48px", position: "relative", zIndex: 1 }}>
           {children}
         </main>
       </div>

@@ -209,12 +209,13 @@ export default function ProjectDetailPage() {
     </div>
   );
 
-  // Board view
+  // Board view — mobile: 2 cols, desktop: auto-fit with min 260px (scales to 4+ on wide)
   const boardView = (
     <div style={{
       display: "grid",
-      gridTemplateColumns: isDesktop ? "repeat(4, 1fr)" : "repeat(2, 1fr)",
+      gridTemplateColumns: isDesktop ? "repeat(auto-fit, minmax(260px, 1fr))" : "repeat(2, 1fr)",
       gap: "12px",
+      alignItems: "start",
     }}>
       {STATUS_ORDER.map((status) => (
         <div key={status} style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
@@ -302,9 +303,10 @@ export default function ProjectDetailPage() {
   ) : (
     <div style={{
       display: isDesktop ? "grid" : "flex",
-      gridTemplateColumns: isDesktop ? "repeat(2, 1fr)" : undefined,
+      gridTemplateColumns: isDesktop ? "repeat(auto-fill, minmax(340px, 1fr))" : undefined,
       flexDirection: isDesktop ? undefined : "column",
       gap: "12px",
+      alignItems: isDesktop ? "start" : undefined,
     }}>
       {tasks.map((task, i) => (
         <div
