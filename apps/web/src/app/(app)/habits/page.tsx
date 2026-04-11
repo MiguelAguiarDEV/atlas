@@ -11,6 +11,7 @@ import {
   HabitForm,
   ConfirmDialog,
   useIsDesktop,
+  useMounted,
   type HabitFormValues,
 } from "@atlas/ui";
 import {
@@ -23,7 +24,9 @@ import {
 } from "@/lib/api/habits";
 
 export default function HabitsPage() {
+  const mounted = useMounted();
   const isDesktop = useIsDesktop();
+  const effectiveDesktop = mounted && isDesktop;
   const [habits, setHabits] = useState<ApiHabit[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -103,7 +106,7 @@ export default function HabitsPage() {
     }
   };
 
-  const containerStyle: React.CSSProperties = isDesktop
+  const containerStyle: React.CSSProperties = effectiveDesktop
     ? {}
     : { padding: "24px 20px 120px 20px", maxWidth: "512px", margin: "0 auto" };
 

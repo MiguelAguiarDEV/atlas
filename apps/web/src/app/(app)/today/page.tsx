@@ -11,6 +11,7 @@ import {
   SunIcon,
   MoonIcon,
   useIsDesktop,
+  useMounted,
   type TaskData,
 } from "@atlas/ui";
 import { listTasks, createTask, updateTask } from "@/lib/api/tasks";
@@ -53,8 +54,16 @@ function saveEnergy(level: EnergyLevel) {
 }
 
 export default function TodayPage() {
-  const { text: greeting } = getGreeting();
-  const dateStr = formatDate();
+  const mounted = useMounted();
+  // Time-dependent values are computed only after mount to avoid SSR/CSR
+  // hydration mismatch. Server renders a stable placeholder; client fills
+  // in the real greeting/date on the first effect.
+  const [greeting, setGreeting] = useState<string>("Hello");
+  const [dateStr, setDateStr] = useState<string>("");
+  useEffect(() => {
+    setGreeting(getGreeting().text);
+    setDateStr(formatDate());
+  }, []);
   const isDesktop = useIsDesktop();
   const [tasks, setTasks] = useState<TaskData[]>([]);
   const [habits, setHabits] = useState<ApiHabit[]>([]);
@@ -332,8 +341,9 @@ export default function TodayPage() {
     </section>
   );
 
-  /* P1-06: Single component tree adapts via isDesktop */
-  if (isDesktop) {
+  /* P1-06: Single component tree adapts via isDesktop.
+     Gate on `mounted` so SSR and first client render agree (mobile-first). */
+  if (mounted && isDesktop) {
     return (
       <div className="animate-fade-in">
         <header className="animate-fade-in-up" style={{ paddingBottom: "24px" }}>

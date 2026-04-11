@@ -3,14 +3,16 @@
 export const dynamic = "force-dynamic";
 
 import { useState, useEffect, useCallback } from "react";
-import { TaskCard, TaskDetailPanel, SearchIcon, ListIcon, BoardIcon, FilterBar, NewTaskForm, PlusIcon, applyFilters, DEFAULT_FILTERS, useIsDesktop, type TaskData, type TaskComment, type TaskFilters, type ProjectOption, type NewTaskFormValues } from "@atlas/ui";
+import { TaskCard, TaskDetailPanel, SearchIcon, ListIcon, BoardIcon, FilterBar, NewTaskForm, PlusIcon, applyFilters, DEFAULT_FILTERS, useIsDesktop, useMounted, type TaskData, type TaskComment, type TaskFilters, type ProjectOption, type NewTaskFormValues } from "@atlas/ui";
 import { listTasks, createTask, updateTask, deleteTask, getTask, createTaskEvent, listTaskEvents } from "@/lib/api/tasks";
 import { listProjects, type ApiProject } from "@/lib/api/projects";
 import { toTaskData, toPriorityString } from "@/lib/mappers";
 import Link from "next/link";
 
 export default function TasksPage() {
-  const isDesktop = useIsDesktop();
+  const mounted = useMounted();
+  const rawIsDesktop = useIsDesktop();
+  const isDesktop = mounted && rawIsDesktop;
   const [filters, setFilters] = useState<TaskFilters>(DEFAULT_FILTERS);
   const [tasks, setTasks] = useState<TaskData[]>([]);
   const [projectOptions, setProjectOptions] = useState<ProjectOption[]>([]);

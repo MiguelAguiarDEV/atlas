@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
-import { FolderIcon, PlusIcon, EditIcon, TrashIcon, EditProjectForm, ConfirmDialog, useIsDesktop, type EditProjectValues } from "@atlas/ui";
+import { FolderIcon, PlusIcon, EditIcon, TrashIcon, EditProjectForm, ConfirmDialog, useIsDesktop, useMounted, type EditProjectValues } from "@atlas/ui";
 import { listProjects, createProject, updateProject, deleteProject, type ApiProject } from "@/lib/api/projects";
 import { listTasks } from "@/lib/api/tasks";
 
@@ -35,7 +35,9 @@ function formatRelativeDate(iso: string): string {
 }
 
 export default function ProjectsPage() {
-  const isDesktop = useIsDesktop();
+  const mounted = useMounted();
+  const rawIsDesktop = useIsDesktop();
+  const isDesktop = mounted && rawIsDesktop;
   const [projects, setProjects] = useState<ApiProject[]>([]);
   const [tasksByProject, setTasksByProject] = useState<Map<number, ProjectStats>>(new Map());
   const [loading, setLoading] = useState(true);

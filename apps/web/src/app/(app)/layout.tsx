@@ -12,6 +12,7 @@ import {
   BoardIcon,
   FolderIcon,
   useIsDesktop,
+  useMounted,
   type SidebarItem,
 } from "@atlas/ui";
 
@@ -47,6 +48,7 @@ function getActiveTab(pathname: string): string {
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const activeTab = getActiveTab(pathname);
+  const mounted = useMounted();
   const isDesktop = useIsDesktop();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [menuMounted, setMenuMounted] = useState(false);
@@ -78,7 +80,10 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
     };
   }, []);
 
-  if (isDesktop) {
+  // Only switch to desktop layout after mount. SSR + first client render
+  // always produce the mobile layout, which eliminates the hydration mismatch
+  // and the post-hydration re-render flash.
+  if (mounted && isDesktop) {
     return (
       <div style={{ display: "flex", minHeight: "100dvh", background: "var(--bg-base)", position: "relative" }}>
         <AmbientOrbs />
