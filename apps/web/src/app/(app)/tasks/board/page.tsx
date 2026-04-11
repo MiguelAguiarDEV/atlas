@@ -4,7 +4,7 @@ export const dynamic = "force-dynamic";
 
 import { useState, useEffect, useCallback, useRef, type DragEvent } from "react";
 import Link from "next/link";
-import { TaskDetailPanel, FilterBar, applyFilters, DEFAULT_FILTERS, SearchIcon, ListIcon, BoardIcon, useIsDesktop, type TaskData, type TaskComment, type TaskFilters, type ProjectOption } from "@atlas/ui";
+import { TaskDetailPanel, FilterBar, applyFilters, DEFAULT_FILTERS, SearchIcon, ListIcon, BoardIcon, useIsDesktop, useMounted, type TaskData, type TaskComment, type TaskFilters, type ProjectOption } from "@atlas/ui";
 import { listTasks, updateTask, getTask, createTaskEvent, listTaskEvents } from "@/lib/api/tasks";
 import { listProjects, type ApiProject } from "@/lib/api/projects";
 import { toTaskData, toPriorityString } from "@/lib/mappers";
@@ -157,7 +157,9 @@ function CompactCard({
 }
 
 export default function BoardPage() {
-  const isDesktop = useIsDesktop();
+  const mounted = useMounted();
+  const rawIsDesktop = useIsDesktop();
+  const isDesktop = mounted && rawIsDesktop;
   const [filters, setFilters] = useState<TaskFilters>(DEFAULT_FILTERS);
   const [tasks, setTasks] = useState<TaskData[]>([]);
   const [projectOptions, setProjectOptions] = useState<ProjectOption[]>([]);

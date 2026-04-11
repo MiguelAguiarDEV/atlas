@@ -8,7 +8,7 @@ export { Sidebar, type SidebarItem } from "./sidebar";
 export { TaskDetailPanel, type TaskComment } from "./task-detail-panel";
 export { QuickCapture } from "./quick-capture";
 export { HabitCheck } from "./habit-check";
-export { useIsDesktop } from "./use-is-desktop";
+export { useIsDesktop, useMounted } from "./use-is-desktop";
 export { ConfirmDialog } from "./confirm-dialog";
 export { NewTaskForm, type NewTaskFormValues } from "./new-task-form";
 export {

@@ -3,7 +3,7 @@
 export const dynamic = "force-dynamic";
 
 import { useState, useEffect, useCallback, useRef } from "react";
-import { TimerDisplay, ClockIcon, PlusIcon, EditIcon, TrashIcon, ManualTimeEntryForm, ConfirmDialog, useIsDesktop, type ManualTimeEntryValues } from "@atlas/ui";
+import { TimerDisplay, ClockIcon, PlusIcon, EditIcon, TrashIcon, ManualTimeEntryForm, ConfirmDialog, useIsDesktop, useMounted, type ManualTimeEntryValues } from "@atlas/ui";
 import { listTasks, updateTask, type ApiTask } from "@/lib/api/tasks";
 import {
   listTimeEntries,
@@ -17,7 +17,11 @@ import {
 import { formatDuration } from "@/lib/mappers";
 
 export default function TimerPage() {
+  const mounted = useMounted();
   const isDesktop = useIsDesktop();
+  // containerStyle + any viewport-dependent layout is gated on `mounted`
+  // below so the SSR and first client render produce identical HTML.
+  const effectiveDesktop = mounted && isDesktop;
   const [tasks, setTasks] = useState<ApiTask[]>([]);
   const [recentEntries, setRecentEntries] = useState<ApiTimeEntry[]>([]);
   const [loading, setLoading] = useState(true);
@@ -248,7 +252,7 @@ export default function TimerPage() {
     0,
   );
 
-  const containerStyle: React.CSSProperties = isDesktop
+  const containerStyle: React.CSSProperties = effectiveDesktop
     ? {}
     : { padding: "32px 20px 120px 20px", maxWidth: "512px", margin: "0 auto", overflow: "hidden" };
 
@@ -482,7 +486,7 @@ export default function TimerPage() {
         No sessions yet. Start a timer above!
       </p>
     </div>
-  ) : isDesktop ? (
+  ) : effectiveDesktop ? (
     /* Desktop: table layout */
     <div className="glass-elevated" style={{ overflow: "hidden" }}>
       <div
@@ -721,7 +725,7 @@ export default function TimerPage() {
           paddingBottom: "40px",
         }}
       >
-        <div style={{ width: isDesktop ? "300px" : undefined }}>
+        <div style={{ width: effectiveDesktop ? "300px" : undefined }}>
           <TimerDisplay
             taskName={currentTask?.title ?? (timerRunning ? "Timer running" : "No task selected")}
             isRunning={timerRunning}

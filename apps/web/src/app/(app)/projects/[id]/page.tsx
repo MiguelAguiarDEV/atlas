@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
-import { TaskCard, ArrowLeftIcon, FolderIcon, EditIcon, TrashIcon, EditProjectForm, ConfirmDialog, useIsDesktop, type TaskData, type EditProjectValues } from "@atlas/ui";
+import { TaskCard, ArrowLeftIcon, FolderIcon, EditIcon, TrashIcon, EditProjectForm, ConfirmDialog, useIsDesktop, useMounted, type TaskData, type EditProjectValues } from "@atlas/ui";
 import { getProject, updateProject, deleteProject, type ApiProject } from "@/lib/api/projects";
 import { listTasks, updateTask } from "@/lib/api/tasks";
 import { toTaskData } from "@/lib/mappers";
@@ -55,7 +55,9 @@ export default function ProjectDetailPage() {
   const params = useParams();
   const router = useRouter();
   const projectId = Number(params.id);
-  const isDesktop = useIsDesktop();
+  const mounted = useMounted();
+  const rawIsDesktop = useIsDesktop();
+  const isDesktop = mounted && rawIsDesktop;
 
   const [project, setProject] = useState<ApiProject | null>(null);
   const [tasks, setTasks] = useState<TaskData[]>([]);
