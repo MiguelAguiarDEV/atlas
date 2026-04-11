@@ -76,8 +76,8 @@ export function TimerDisplay({ taskName, className = "", isRunning: externalRunn
   }, [running]);
 
   const progress = Math.min((seconds % 3600) / 3600, 1);
-  const radius = 110;
   const svgSize = 240;
+  const radius = 104;
   const center = svgSize / 2;
   const circumference = 2 * Math.PI * radius;
   const offset = circumference * (1 - progress);
@@ -91,9 +91,10 @@ export function TimerDisplay({ taskName, className = "", isRunning: externalRunn
           overflow: "hidden",
           textOverflow: "ellipsis",
           whiteSpace: "nowrap",
-          fontSize: "12px",
+          fontSize: "14px",
           fontWeight: 500,
           color: "var(--text-secondary)",
+          letterSpacing: "0.01em",
         }}>
           {taskName}
         </p>
@@ -102,9 +103,9 @@ export function TimerDisplay({ taskName, className = "", isRunning: externalRunn
       {/* Timer ring */}
       <div style={{ position: "relative", display: "flex", alignItems: "center", justifyContent: "center", width: "240px", height: "240px" }}>
         <svg
-          width={svgSize}
-          height={svgSize}
-          className={`-rotate-90 ${running ? "ring-glow-active" : ""}`}
+          viewBox={`0 0 ${svgSize} ${svgSize}`}
+          style={{ width: `${svgSize}px`, height: `${svgSize}px`, display: "block", transform: "rotate(-90deg)" }}
+          className={running ? "ring-glow-active" : ""}
         >
           <defs>
             <linearGradient id="timer-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
@@ -118,8 +119,8 @@ export function TimerDisplay({ taskName, className = "", isRunning: externalRunn
             cy={center}
             r={radius}
             fill="none"
-            stroke="var(--border)"
-            strokeWidth="3"
+            stroke="rgba(255,255,255,0.14)"
+            strokeWidth="6"
           />
           {/* Progress arc */}
           <circle
@@ -128,21 +129,21 @@ export function TimerDisplay({ taskName, className = "", isRunning: externalRunn
             r={radius}
             fill="none"
             stroke="url(#timer-gradient)"
-            strokeWidth="3"
+            strokeWidth="6"
             strokeLinecap="round"
             strokeDasharray={circumference}
             strokeDashoffset={offset}
-            className="transition-[stroke-dashoffset] duration-1000 ease-linear"
+            style={{ transition: "stroke-dashoffset 1000ms linear" }}
           />
         </svg>
 
         {/* Time display */}
-        <div className="absolute flex flex-col items-center gap-1">
+        <div style={{ position: "absolute", display: "flex", flexDirection: "column", alignItems: "center", gap: "4px" }}>
           <span
             style={{
-              fontSize: "28px",
+              fontSize: "44px",
               fontWeight: 300,
-              letterSpacing: "0.04em",
+              letterSpacing: "0.02em",
               fontVariantNumeric: "tabular-nums",
               color: "var(--text-primary)",
               fontFamily: "var(--font-mono)",
@@ -195,8 +196,8 @@ export function TimerDisplay({ taskName, className = "", isRunning: externalRunn
               ? "var(--destructive)"
               : "white",
             boxShadow: running
-              ? "0 0 20px var(--destructive-glow)"
-              : "0 0 24px var(--accent-glow)",
+              ? "0 0 40px rgba(229,72,77,0.35), inset 0 0 0 1px rgba(229,72,77,0.4)"
+              : "0 0 48px rgba(94,106,210,0.45), inset 0 0 0 1px rgba(94,106,210,0.5)",
           }}
           aria-label={running ? "Stop timer" : "Start timer"}
         >

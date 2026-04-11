@@ -3,21 +3,15 @@
 import { useState, useEffect, useCallback } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
-import { TaskCard, ArrowLeftIcon, FolderIcon, type TaskData } from "@atlas/ui";
+import { TaskCard, ArrowLeftIcon, FolderIcon, useIsDesktop, type TaskData } from "@atlas/ui";
 import { getProject, type ApiProject } from "@/lib/api/projects";
 import { listTasks, updateTask, type ApiTask } from "@/lib/api/tasks";
 import { toTaskData } from "@/lib/mappers";
 
-function useIsDesktop() {
-  const [isDesktop, setIsDesktop] = useState(false);
-  useEffect(() => {
-    const mq = window.matchMedia("(min-width: 768px)");
-    setIsDesktop(mq.matches);
-    const handler = (e: MediaQueryListEvent) => setIsDesktop(e.matches);
-    mq.addEventListener("change", handler);
-    return () => mq.removeEventListener("change", handler);
-  }, []);
-  return isDesktop;
+function normalizeProjectColor(raw: string | null | undefined): string {
+  if (!raw) return "#5E6AD2";
+  if (raw.toLowerCase() === "#3b82f6") return "#5E6AD2";
+  return raw;
 }
 
 type ViewMode = "list" | "board";
@@ -172,7 +166,7 @@ export default function ProjectDetailPage() {
     );
   }
 
-  const color = project.color || "#5E6AD2";
+  const color = normalizeProjectColor(project.color);
   const totalTasks = tasks.length;
   const doneTasks = tasks.filter((t) => t.status === "done").length;
   const inProgressTasks = tasks.filter((t) => t.status === "in_progress").length;
@@ -191,15 +185,16 @@ export default function ProjectDetailPage() {
 
   // View toggle
   const viewToggle = (
-    <div style={{ display: "flex", gap: "4px", background: "var(--bg-elevated)", border: "1px solid var(--border)", borderRadius: "10px", padding: "3px" }}>
+    <div style={{ display: "flex", gap: "4px", background: "var(--bg-elevated)", border: "1px solid var(--border)", borderRadius: "10px", padding: "4px" }}>
       {(["list", "board"] as ViewMode[]).map((mode) => (
         <button
           key={mode}
           onClick={() => setViewMode(mode)}
           style={{
-            padding: "6px 16px",
+            padding: "11px 18px",
+            minHeight: "44px",
             fontSize: "13px",
-            fontWeight: 500,
+            fontWeight: 600,
             borderRadius: "8px",
             border: "none",
             cursor: "pointer",
@@ -228,19 +223,27 @@ export default function ProjectDetailPage() {
             display: "flex",
             alignItems: "center",
             gap: "8px",
-            paddingBottom: "8px",
-            borderBottom: `2px solid ${STATUS_COLORS[status]}`,
+            paddingBottom: "10px",
+            borderBottom: "1px solid var(--border)",
           }}>
+            <span style={{
+              width: "6px",
+              height: "6px",
+              borderRadius: "9999px",
+              background: STATUS_COLORS[status],
+              flexShrink: 0,
+            }} />
             <span style={{ fontSize: "12px", fontWeight: 600, color: "var(--text-secondary)", textTransform: "uppercase", letterSpacing: "0.05em" }}>
               {STATUS_LABELS[status]}
             </span>
             <span style={{
-              fontSize: "11px",
+              fontSize: "12px",
               fontWeight: 600,
-              color: STATUS_COLORS[status],
-              background: `${STATUS_COLORS[status]}20`,
-              padding: "1px 6px",
+              color: "var(--text-secondary)",
+              background: "var(--bg-surface)",
+              padding: "2px 8px",
               borderRadius: "9999px",
+              fontVariantNumeric: "tabular-nums",
             }}>
               {statusGroups[status].length}
             </span>
@@ -346,7 +349,7 @@ export default function ProjectDetailPage() {
             background: color,
             flexShrink: 0,
           }} />
-          <h1 style={{ fontSize: "24px", fontWeight: 600, color: "var(--text-primary)", letterSpacing: "-0.02em" }}>
+          <h1 className="text-h1" style={{ color: "var(--text-primary)" }}>
             {project.name}
           </h1>
         </div>
@@ -380,14 +383,15 @@ export default function ProjectDetailPage() {
             }}
           >
             <span style={{
-              fontSize: "18px",
+              fontSize: "22px",
               fontWeight: 600,
               color: item.color,
               fontVariantNumeric: "tabular-nums",
+              letterSpacing: "-0.02em",
             }}>
               {item.value}
             </span>
-            <span style={{ fontSize: "11px", fontWeight: 500, color: "var(--text-secondary)" }}>
+            <span style={{ fontSize: "12px", fontWeight: 500, color: "var(--text-secondary)", letterSpacing: "0.01em" }}>
               {item.label}
             </span>
           </div>
@@ -429,14 +433,14 @@ export default function ProjectDetailPage() {
           paddingBottom: "20px",
         }}
       >
-        <span style={{ fontSize: "14px", fontWeight: 600, color: "var(--text-primary)" }}>
+        <span style={{ fontSize: "14px", fontWeight: 600, color: "var(--text-primary)", letterSpacing: "-0.01em" }}>
           Tasks
           <span style={{
             marginLeft: "8px",
             fontSize: "12px",
             fontWeight: 600,
-            background: "var(--accent-glow)",
-            color: "var(--accent)",
+            background: "var(--bg-surface)",
+            color: "var(--text-secondary)",
             padding: "2px 8px",
             borderRadius: "9999px",
           }}>

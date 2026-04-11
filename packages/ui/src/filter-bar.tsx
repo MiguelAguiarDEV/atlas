@@ -158,13 +158,13 @@ function Dropdown({
           display: "flex",
           alignItems: "center",
           gap: "6px",
-          padding: "6px 10px",
-          minHeight: "32px",
+          padding: "8px 12px",
+          minHeight: "44px",
           fontSize: "13px",
           fontWeight: 500,
-          borderRadius: "8px",
+          borderRadius: "10px",
           border: isActive ? "1px solid var(--accent)" : "1px solid var(--border)",
-          background: isActive ? "rgba(99,102,241,0.1)" : "transparent",
+          background: isActive ? "var(--accent-glow)" : "transparent",
           color: isActive ? "var(--accent)" : "var(--text-secondary)",
           cursor: "pointer",
           whiteSpace: "nowrap",
@@ -209,8 +209,8 @@ function Dropdown({
                 alignItems: "center",
                 justifyContent: "space-between",
                 width: "100%",
-                minHeight: "36px",
-                padding: "8px 10px",
+                minHeight: "44px",
+                padding: "10px 12px",
                 fontSize: "13px",
                 fontWeight: value === opt.value ? 600 : 400,
                 color: value === opt.value ? "var(--accent)" : "var(--text-primary)",
@@ -285,15 +285,17 @@ function PillGroup({
             key={opt.value}
             onClick={() => toggle(opt.value)}
             style={{
-              padding: "4px 10px",
-              minHeight: "28px",
+              padding: "8px 14px",
+              minHeight: "44px",
               fontSize: "12px",
               fontWeight: 500,
               borderRadius: "9999px",
               border: active
                 ? `1px solid ${accentColor}`
                 : "1px solid var(--border)",
-              background: active ? `${accentColor}1a` : "transparent",
+              background: active
+                ? `color-mix(in srgb, ${accentColor} 12%, transparent)`
+                : "transparent",
               color: active ? accentColor : "var(--text-secondary)",
               cursor: "pointer",
               whiteSpace: "nowrap",
@@ -598,8 +600,8 @@ export function FilterBar({
               display: "flex",
               alignItems: "center",
               gap: "6px",
-              padding: "8px 14px",
-              minHeight: "36px",
+              padding: "10px 16px",
+              minHeight: "44px",
               fontSize: "13px",
               fontWeight: 500,
               borderRadius: "10px",
@@ -607,7 +609,7 @@ export function FilterBar({
                 ? "1px solid var(--accent)"
                 : "1px solid var(--border)",
               background: hasFilters
-                ? "rgba(99,102,241,0.1)"
+                ? "var(--accent-glow)"
                 : "var(--bg-elevated)",
               color: hasFilters ? "var(--accent)" : "var(--text-secondary)",
               cursor: "pointer",
@@ -728,8 +730,8 @@ export function FilterBar({
               display: "flex",
               alignItems: "center",
               gap: "4px",
-              padding: "4px 10px",
-              minHeight: "28px",
+              padding: "8px 12px",
+              minHeight: "40px",
               fontSize: "12px",
               fontWeight: 500,
               color: "var(--text-secondary)",

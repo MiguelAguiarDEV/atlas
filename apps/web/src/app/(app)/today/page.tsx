@@ -1,5 +1,7 @@
 "use client";
 
+export const dynamic = "force-dynamic";
+
 import { useState, useEffect, useCallback } from "react";
 import {
   EnergySelector,
@@ -8,6 +10,7 @@ import {
   QuickCapture,
   SunIcon,
   MoonIcon,
+  useIsDesktop,
   type TaskData,
 } from "@atlas/ui";
 import { listTasks, createTask, updateTask } from "@/lib/api/tasks";
@@ -28,18 +31,6 @@ function formatDate(): string {
     month: "long",
     day: "numeric",
   });
-}
-
-function useIsDesktop() {
-  const [isDesktop, setIsDesktop] = useState(false);
-  useEffect(() => {
-    const mq = window.matchMedia("(min-width: 768px)");
-    setIsDesktop(mq.matches);
-    const handler = (e: MediaQueryListEvent) => setIsDesktop(e.matches);
-    mq.addEventListener("change", handler);
-    return () => mq.removeEventListener("change", handler);
-  }, []);
-  return isDesktop;
 }
 
 type EnergyLevel = "high" | "medium" | "low";
@@ -176,7 +167,7 @@ export default function TodayPage() {
       <div style={{ padding: isDesktop ? "0" : "24px 20px 120px 20px", maxWidth: isDesktop ? "none" : "512px", margin: "0 auto" }}>
         <header style={{ paddingBottom: "24px" }}>
           <h1 className="text-h1" style={{ color: "var(--text-primary)" }}>{greeting}</h1>
-          <p style={{ marginTop: "4px", fontSize: "12px", fontWeight: 500, color: "var(--text-secondary)" }}>
+          <p style={{ marginTop: "4px", fontSize: "12px", fontWeight: 500, color: "var(--text-secondary)", letterSpacing: "0.01em" }}>
             {dateStr}
           </p>
         </header>
@@ -185,7 +176,7 @@ export default function TodayPage() {
             <div
               key={i}
               className="skeleton"
-              style={{ height: "60px", animationDelay: `${i * 100}ms` }}
+              style={{ height: "74px", animationDelay: `${i * 100}ms` }}
             />
           ))}
         </div>
@@ -199,11 +190,11 @@ export default function TodayPage() {
       <div style={{ padding: isDesktop ? "0" : "24px 20px 120px 20px", maxWidth: isDesktop ? "none" : "512px", margin: "0 auto" }}>
         <header style={{ paddingBottom: "24px" }}>
           <h1 className="text-h1" style={{ color: "var(--text-primary)" }}>{greeting}</h1>
-          <p style={{ marginTop: "4px", fontSize: "12px", fontWeight: 500, color: "var(--text-secondary)" }}>
+          <p style={{ marginTop: "4px", fontSize: "12px", fontWeight: 500, color: "var(--text-secondary)", letterSpacing: "0.01em" }}>
             {dateStr}
           </p>
         </header>
-        <div className="glass-elevated" style={{ padding: "32px 16px", textAlign: "center" }}>
+        <div className="glass-elevated" style={{ padding: "14px 16px", textAlign: "center" }}>
           <p style={{ fontSize: "14px", color: "var(--text-secondary)", marginBottom: "8px" }}>
             Something went wrong loading your data.
           </p>
@@ -224,7 +215,8 @@ export default function TodayPage() {
               border: "none",
               borderRadius: "10px",
               cursor: "pointer",
-              boxShadow: "0 0 20px var(--accent-glow)",
+              outline: "1px solid var(--accent)",
+              outlineOffset: "2px",
               transition: "all 200ms cubic-bezier(0.16,1,0.3,1)",
             }}
           >
@@ -235,10 +227,10 @@ export default function TodayPage() {
     );
   }
 
-  /* --- Section header helper (P1-05) --- */
-  const SectionHead = ({ title, count }: { title: string; count?: number }) => (
+  /* --- Section header helper (extended with trailing slot) --- */
+  const SectionHead = ({ title, count, trailing }: { title: string; count?: number; trailing?: React.ReactNode }) => (
     <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "12px" }}>
-      <h2 style={{ fontSize: "14px", fontWeight: 600, color: "var(--text-primary)" }}>
+      <h2 style={{ fontSize: "14px", fontWeight: 600, color: "var(--text-primary)", letterSpacing: "-0.01em" }}>
         {title}
         {count !== undefined && (
           <span style={{
@@ -246,7 +238,7 @@ export default function TodayPage() {
             fontSize: "12px",
             fontWeight: 600,
             background: "var(--accent-glow)",
-            color: "var(--accent)",
+            color: "var(--text-primary)",
             padding: "2px 8px",
             borderRadius: "9999px",
           }}>
@@ -254,35 +246,24 @@ export default function TodayPage() {
           </span>
         )}
       </h2>
+      {trailing}
     </div>
   );
 
   const tasksSection = (
     <section className="animate-fade-in" style={{ paddingBottom: "32px" }}>
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "12px" }}>
-        <h2 style={{ fontSize: "14px", fontWeight: 600, color: "var(--text-primary)" }}>
-          Tasks
-          <span style={{
-            marginLeft: "8px",
-            fontSize: "12px",
-            fontWeight: 600,
-            background: "var(--accent-glow)",
-            color: "var(--accent)",
-            padding: "2px 8px",
-            borderRadius: "9999px",
-          }}>
-            {activeTasks.length}
-          </span>
-        </h2>
-        {totalEstimate > 0 && (
-          <span style={{ fontSize: "12px", color: "var(--text-secondary)" }}>
+      <SectionHead
+        title="Tasks"
+        count={activeTasks.length}
+        trailing={totalEstimate > 0 ? (
+          <span style={{ fontSize: "12px", color: "var(--text-secondary)", letterSpacing: "0.01em", fontVariantNumeric: "tabular-nums" }}>
             ~{totalEstimate >= 60 ? `${Math.round(totalEstimate / 60)}h` : `${totalEstimate}m`}
           </span>
-        )}
-      </div>
+        ) : null}
+      />
       <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
         {tasks.length === 0 ? (
-          <div className="glass-elevated" style={{ padding: "40px 16px", textAlign: "center" }}>
+          <div className="glass-elevated" style={{ padding: "14px 16px", textAlign: "center" }}>
             <p style={{ fontSize: "14px", color: "var(--text-secondary)" }}>
               No tasks yet. Use quick capture to add one.
             </p>
@@ -292,7 +273,7 @@ export default function TodayPage() {
             <div
               key={task.id}
               className="animate-fade-in-up"
-              style={{ animationDelay: `${150 + i * 50}ms` }}
+              style={{ animationDelay: `${80 + i * 30}ms` }}
             >
               <TaskCard task={task} onToggle={handleToggle} showProject />
             </div>
@@ -312,7 +293,7 @@ export default function TodayPage() {
     <section className="animate-fade-in" style={{ paddingBottom: "32px" }}>
       <SectionHead title="Habits" count={habits.length} />
       {habits.length === 0 ? (
-        <div className="glass-elevated" style={{ padding: "32px 16px", textAlign: "center" }}>
+        <div className="glass-elevated" style={{ padding: "14px 16px", textAlign: "center" }}>
           <p style={{ fontSize: "14px", color: "var(--text-secondary)" }}>
             No habits configured yet.
           </p>
@@ -337,15 +318,15 @@ export default function TodayPage() {
     <section className="animate-fade-in">
       <SectionHead title="Overview" />
       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px" }}>
-        <div className="glass-elevated" style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "4px", padding: "16px" }}>
-          <span style={{ fontSize: "20px", fontWeight: 600, color: "var(--text-primary)", fontVariantNumeric: "tabular-nums" }}>{activeTasks.length}</span>
-          <span style={{ fontSize: "12px", fontWeight: 500, color: "var(--text-secondary)" }}>Active tasks</span>
+        <div className="glass-elevated" style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "4px", padding: "14px 16px" }}>
+          <span style={{ fontSize: "24px", fontWeight: 600, color: "var(--text-primary)", fontVariantNumeric: "tabular-nums", letterSpacing: "-0.02em" }}>{activeTasks.length}</span>
+          <span style={{ fontSize: "12px", fontWeight: 500, color: "var(--text-secondary)", letterSpacing: "0.01em" }}>Active tasks</span>
         </div>
-        <div className="glass-elevated" style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "4px", padding: "16px" }}>
-          <span style={{ fontSize: "20px", fontWeight: 600, color: "var(--text-primary)", fontVariantNumeric: "tabular-nums" }}>
+        <div className="glass-elevated" style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "4px", padding: "14px 16px" }}>
+          <span style={{ fontSize: "24px", fontWeight: 600, color: "var(--text-primary)", fontVariantNumeric: "tabular-nums", letterSpacing: "-0.02em" }}>
             {totalEstimate >= 60 ? `${Math.round(totalEstimate / 60)}h` : `${totalEstimate}m`}
           </span>
-          <span style={{ fontSize: "12px", fontWeight: 500, color: "var(--text-secondary)" }}>Estimated</span>
+          <span style={{ fontSize: "12px", fontWeight: 500, color: "var(--text-secondary)", letterSpacing: "0.01em" }}>Estimated</span>
         </div>
       </div>
     </section>
@@ -357,7 +338,7 @@ export default function TodayPage() {
       <div className="animate-fade-in">
         <header className="animate-fade-in-up" style={{ paddingBottom: "24px" }}>
           <h1 className="text-h1" style={{ color: "var(--text-primary)" }}>{greeting}</h1>
-          <p style={{ marginTop: "4px", fontSize: "12px", fontWeight: 500, color: "var(--text-secondary)" }}>
+          <p style={{ marginTop: "4px", fontSize: "12px", fontWeight: 500, color: "var(--text-secondary)", letterSpacing: "0.01em" }}>
             {dateStr}
           </p>
         </header>

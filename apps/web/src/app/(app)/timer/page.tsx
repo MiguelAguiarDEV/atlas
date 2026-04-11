@@ -1,7 +1,9 @@
 "use client";
 
+export const dynamic = "force-dynamic";
+
 import { useState, useEffect, useCallback, useRef } from "react";
-import { TimerDisplay, ClockIcon } from "@atlas/ui";
+import { TimerDisplay, ClockIcon, useIsDesktop } from "@atlas/ui";
 import { listTasks, updateTask, type ApiTask } from "@/lib/api/tasks";
 import {
   listTimeEntries,
@@ -10,18 +12,6 @@ import {
   type ApiTimeEntry,
 } from "@/lib/api/time-entries";
 import { formatDuration } from "@/lib/mappers";
-
-function useIsDesktop() {
-  const [isDesktop, setIsDesktop] = useState(false);
-  useEffect(() => {
-    const mq = window.matchMedia("(min-width: 768px)");
-    setIsDesktop(mq.matches);
-    const handler = (e: MediaQueryListEvent) => setIsDesktop(e.matches);
-    mq.addEventListener("change", handler);
-    return () => mq.removeEventListener("change", handler);
-  }, []);
-  return isDesktop;
-}
 
 export default function TimerPage() {
   const isDesktop = useIsDesktop();
@@ -50,7 +40,11 @@ export default function TimerPage() {
       const tasksList = tasksRes.data ?? [];
       const entriesList = entriesRes.data ?? [];
       setTasks(tasksList);
-      setRecentEntries(entriesList.filter((e) => e.ended_at).slice(0, 5));
+      setRecentEntries(
+        entriesList
+          .filter((e) => e.ended_at && (e.duration_secs ?? 0) >= 60)
+          .slice(0, 5),
+      );
 
       // Check for an active (running) time entry
       const runningEntry = entriesList.find((e) => !e.ended_at);
@@ -132,7 +126,9 @@ export default function TimerPage() {
       // Refresh entries to show the completed session
       const entriesRes = await listTimeEntries({ limit: 20 });
       setRecentEntries(
-        (entriesRes.data ?? []).filter((e) => e.ended_at).slice(0, 5),
+        (entriesRes.data ?? [])
+          .filter((e) => e.ended_at && (e.duration_secs ?? 0) >= 60)
+          .slice(0, 5),
       );
     } catch (err) {
       console.error("Failed to stop timer:", err);
@@ -242,7 +238,8 @@ export default function TimerPage() {
               border: "none",
               borderRadius: "10px",
               cursor: "pointer",
-              boxShadow: "0 0 20px var(--accent-glow)",
+              outline: "1px solid var(--accent)",
+              outlineOffset: "2px",
               transition: "all 200ms cubic-bezier(0.16,1,0.3,1)",
             }}
           >
@@ -346,7 +343,7 @@ export default function TimerPage() {
   const statsCards = (
     <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px" }}>
       {/* Focus time card */}
-      <div className="glass-elevated" style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "8px", padding: "20px 16px" }}>
+      <div className="glass-elevated" style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "6px", padding: "14px 16px" }}>
         <div
           style={{
             width: "40px",
@@ -377,7 +374,7 @@ export default function TimerPage() {
       </div>
 
       {/* Sessions card */}
-      <div className="glass-elevated" style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "8px", padding: "20px 16px" }}>
+      <div className="glass-elevated" style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "6px", padding: "14px 16px" }}>
         <div
           style={{
             width: "40px",
@@ -612,7 +609,8 @@ export default function TimerPage() {
           <button
             onClick={() => setShowTaskSelector(true)}
             style={{
-              padding: "8px 16px",
+              padding: "12px 18px",
+              minHeight: "44px",
               fontSize: "13px",
               fontWeight: 500,
               color: "var(--text-secondary)",

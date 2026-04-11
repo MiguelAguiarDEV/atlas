@@ -1,23 +1,13 @@
 "use client";
 
+export const dynamic = "force-dynamic";
+
 import { useState, useEffect, useCallback } from "react";
-import { TaskCard, TaskDetailPanel, SearchIcon, ListIcon, BoardIcon, FilterBar, applyFilters, DEFAULT_FILTERS, type TaskData, type TaskComment, type TaskFilters, type ProjectOption } from "@atlas/ui";
+import { TaskCard, TaskDetailPanel, SearchIcon, ListIcon, BoardIcon, FilterBar, applyFilters, DEFAULT_FILTERS, useIsDesktop, type TaskData, type TaskComment, type TaskFilters, type ProjectOption } from "@atlas/ui";
 import { listTasks, updateTask, getTask, createTaskEvent, listTaskEvents } from "@/lib/api/tasks";
 import { listProjects, type ApiProject } from "@/lib/api/projects";
 import { toTaskData, toPriorityString } from "@/lib/mappers";
 import Link from "next/link";
-
-function useIsDesktop() {
-  const [isDesktop, setIsDesktop] = useState(false);
-  useEffect(() => {
-    const mq = window.matchMedia("(min-width: 768px)");
-    setIsDesktop(mq.matches);
-    const handler = (e: MediaQueryListEvent) => setIsDesktop(e.matches);
-    mq.addEventListener("change", handler);
-    return () => mq.removeEventListener("change", handler);
-  }, []);
-  return isDesktop;
-}
 
 export default function TasksPage() {
   const isDesktop = useIsDesktop();
@@ -171,7 +161,7 @@ export default function TasksPage() {
   if (loading) {
     return (
       <div style={containerStyle}>
-        <header style={{ paddingBottom: "16px" }}>
+        <header style={{ paddingBottom: "24px" }}>
           <h1 className="text-h1" style={{ color: "var(--text-primary)" }}>Tasks</h1>
           <p style={{ marginTop: "4px", fontSize: "12px", fontWeight: 500, color: "var(--text-secondary)" }}>
             Loading...
@@ -194,7 +184,7 @@ export default function TasksPage() {
   if (error) {
     return (
       <div style={containerStyle}>
-        <header style={{ paddingBottom: "16px" }}>
+        <header style={{ paddingBottom: "24px" }}>
           <h1 className="text-h1" style={{ color: "var(--text-primary)" }}>Tasks</h1>
         </header>
         <div className="glass-elevated" style={{ padding: "32px 16px", textAlign: "center" }}>
@@ -218,7 +208,8 @@ export default function TasksPage() {
               border: "none",
               borderRadius: "10px",
               cursor: "pointer",
-              boxShadow: "0 0 20px var(--accent-glow)",
+              outline: "1px solid var(--accent)",
+              outlineOffset: "2px",
               transition: "all 200ms cubic-bezier(0.16,1,0.3,1)",
             }}
           >
@@ -230,20 +221,21 @@ export default function TasksPage() {
   }
 
   /* Shared pieces */
+  const segmentMinHeight = isDesktop ? "40px" : "44px";
   const viewToggle = (
-    <div style={{ display: "flex", alignItems: "center", gap: "4px", background: "var(--bg-base)", border: "1px solid var(--border)", borderRadius: "10px", padding: "3px" }}>
+    <div style={{ display: "flex", alignItems: "center", gap: "4px", background: "var(--bg-elevated)", border: "1px solid var(--border)", borderRadius: "10px", padding: "4px" }}>
       <div
         style={{
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
           gap: "6px",
-          padding: "6px 12px",
-          minHeight: "32px",
+          padding: "8px 14px",
+          minHeight: segmentMinHeight,
           fontSize: "13px",
           fontWeight: 600,
           borderRadius: "8px",
-          background: "var(--bg-elevated)",
+          background: "var(--bg-surface)",
           color: "var(--text-primary)",
           border: "1px solid var(--border-hover)",
           cursor: "default",
@@ -259,10 +251,10 @@ export default function TasksPage() {
           alignItems: "center",
           justifyContent: "center",
           gap: "6px",
-          padding: "6px 12px",
-          minHeight: "32px",
+          padding: "8px 14px",
+          minHeight: segmentMinHeight,
           fontSize: "13px",
-          fontWeight: 500,
+          fontWeight: 600,
           borderRadius: "8px",
           background: "transparent",
           color: "var(--text-secondary)",
@@ -279,11 +271,19 @@ export default function TasksPage() {
   );
 
   const headerBlock = (
-    <header className="animate-fade-in-up" style={{ paddingBottom: "16px" }}>
+    <header className="animate-fade-in-up" style={{ paddingBottom: "24px" }}>
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
         <h1 className="text-h1" style={{ color: "var(--text-primary)" }}>Tasks</h1>
         <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
-          <span style={{ fontSize: "12px", fontWeight: 500, color: "var(--text-secondary)", fontVariantNumeric: "tabular-nums" }}>
+          <span style={{
+            fontSize: "12px",
+            fontWeight: 500,
+            color: "var(--text-secondary)",
+            fontVariantNumeric: "tabular-nums",
+            padding: "4px 10px",
+            borderRadius: "9999px",
+            background: "var(--bg-surface)",
+          }}>
             {tasks.length} total
           </span>
           {viewToggle}
@@ -361,7 +361,7 @@ export default function TasksPage() {
     <div
       key={task.id}
       className="animate-fade-in-up"
-      style={{ animationDelay: `${150 + i * 40}ms` }}
+      style={{ animationDelay: `${80 + Math.min(i, 11) * 30}ms` }}
       onClick={() => handleCardClick(task)}
     >
       <TaskCard
@@ -401,12 +401,8 @@ export default function TasksPage() {
       {/* Task list */}
       {filtered.length === 0 ? (
         emptyState
-      ) : isDesktop ? (
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: "12px" }}>
-          {taskCards}
-        </div>
       ) : (
-        <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
+        <div style={{ display: "flex", flexDirection: "column", gap: "8px", maxWidth: isDesktop ? "760px" : undefined }}>
           {taskCards}
         </div>
       )}

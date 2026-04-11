@@ -61,6 +61,7 @@ export function TaskCard({
     onToggle?.(task.id);
   };
 
+  const accentColor = priorityDotColor[task.priority];
   return (
     <div
       className={`group ${checked ? "opacity-50" : ""} ${className}`}
@@ -70,10 +71,23 @@ export function TaskCard({
         gap: "12px",
         background: "var(--bg-elevated)",
         border: "1px solid var(--border)",
+        borderLeft: `3px solid ${accentColor}`,
         borderRadius: "10px",
-        padding: "14px 16px",
+        padding: "14px 16px 14px 13px",
         transition: "all 200ms cubic-bezier(0.16,1,0.3,1)",
         cursor: "pointer",
+      }}
+      onMouseEnter={(e) => {
+        (e.currentTarget as HTMLElement).style.borderColor = "var(--border-hover)";
+        (e.currentTarget as HTMLElement).style.borderLeftColor = accentColor;
+        (e.currentTarget as HTMLElement).style.background = "var(--bg-surface)";
+        (e.currentTarget as HTMLElement).style.transform = "translateY(-1px)";
+      }}
+      onMouseLeave={(e) => {
+        (e.currentTarget as HTMLElement).style.borderColor = "var(--border)";
+        (e.currentTarget as HTMLElement).style.borderLeftColor = accentColor;
+        (e.currentTarget as HTMLElement).style.background = "var(--bg-elevated)";
+        (e.currentTarget as HTMLElement).style.transform = "translateY(0)";
       }}
     >
       {/* Checkbox */}

@@ -11,8 +11,19 @@ import {
   MenuIcon,
   BoardIcon,
   FolderIcon,
+  useIsDesktop,
   type SidebarItem,
 } from "@atlas/ui";
+
+function AmbientOrbs() {
+  return (
+    <div className="ambient-orbs" aria-hidden="true">
+      <div className="ambient-orb ambient-orb-1" />
+      <div className="ambient-orb ambient-orb-2" />
+      <div className="ambient-orb ambient-orb-3" />
+    </div>
+  );
+}
 
 const navItems: SidebarItem[] = [
   { key: "today", label: "Today", icon: <HomeIcon size={20} />, href: "/today" },
@@ -31,18 +42,6 @@ function getActiveTab(pathname: string): string {
   if (pathname.startsWith("/timer")) return "timer";
   if (pathname.startsWith("/more")) return "more";
   return "today";
-}
-
-function useIsDesktop() {
-  const [isDesktop, setIsDesktop] = useState(false);
-  useEffect(() => {
-    const mq = window.matchMedia("(min-width: 768px)");
-    setIsDesktop(mq.matches);
-    const handler = (e: MediaQueryListEvent) => setIsDesktop(e.matches);
-    mq.addEventListener("change", handler);
-    return () => mq.removeEventListener("change", handler);
-  }, []);
-  return isDesktop;
 }
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
@@ -81,9 +80,10 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
 
   if (isDesktop) {
     return (
-      <div style={{ display: "flex", minHeight: "100dvh", background: "var(--bg-base)" }}>
+      <div style={{ display: "flex", minHeight: "100dvh", background: "var(--bg-base)", position: "relative" }}>
+        <AmbientOrbs />
         <Sidebar items={navItems} activeItem={activeTab} />
-        <main style={{ marginLeft: "240px", flex: 1, padding: "32px 48px", maxWidth: "1100px" }}>
+        <main style={{ marginLeft: "240px", flex: 1, padding: "32px 48px", maxWidth: "1100px", position: "relative", zIndex: 1 }}>
           {children}
         </main>
       </div>
@@ -91,13 +91,14 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   }
 
   return (
-    <div style={{ minHeight: "100dvh", background: "var(--bg-base)" }}>
+    <div style={{ minHeight: "100dvh", background: "var(--bg-base)", position: "relative" }}>
+      <AmbientOrbs />
       {/* Mobile top bar */}
       <header style={{
         position: "sticky", top: 0, zIndex: 50,
         display: "flex", alignItems: "center", justifyContent: "space-between",
         height: "56px", padding: "0 20px",
-        background: "var(--bg-elevated)", borderBottom: "1px solid var(--border)",
+        background: "var(--bg-deep)", borderBottom: "1px solid var(--border)",
       }}>
         <span style={{ fontSize: "18px", fontWeight: 600, color: "var(--accent)" }}>Atlas</span>
         <button
@@ -157,7 +158,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
       )}
 
       {/* Content */}
-      <main>{children}</main>
+      <main style={{ position: "relative", zIndex: 1 }}>{children}</main>
     </div>
   );
 }

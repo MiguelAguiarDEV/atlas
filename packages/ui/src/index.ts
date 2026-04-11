@@ -8,6 +8,7 @@ export { Sidebar, type SidebarItem } from "./sidebar";
 export { TaskDetailPanel, type TaskComment } from "./task-detail-panel";
 export { QuickCapture } from "./quick-capture";
 export { HabitCheck } from "./habit-check";
+export { useIsDesktop } from "./use-is-desktop";
 export {
   FilterBar,
   applyFilters,

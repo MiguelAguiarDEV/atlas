@@ -1,7 +1,10 @@
 "use client";
 
+export const dynamic = "force-dynamic";
+
 import { useState, useEffect, useCallback, useRef, type DragEvent } from "react";
-import { TaskDetailPanel, FilterBar, applyFilters, DEFAULT_FILTERS, type TaskData, type TaskComment, type TaskFilters, type ProjectOption } from "@atlas/ui";
+import Link from "next/link";
+import { TaskDetailPanel, FilterBar, applyFilters, DEFAULT_FILTERS, SearchIcon, ListIcon, BoardIcon, useIsDesktop, type TaskData, type TaskComment, type TaskFilters, type ProjectOption } from "@atlas/ui";
 import { listTasks, updateTask, getTask, createTaskEvent, listTaskEvents } from "@/lib/api/tasks";
 import { listProjects, type ApiProject } from "@/lib/api/projects";
 import { toTaskData, toPriorityString } from "@/lib/mappers";
@@ -21,18 +24,6 @@ const statusHeaderColor: Record<string, string> = {
   in_review: "var(--warning)",
   done: "var(--success)",
 };
-
-function useIsDesktop() {
-  const [isDesktop, setIsDesktop] = useState(false);
-  useEffect(() => {
-    const mq = window.matchMedia("(min-width: 768px)");
-    setIsDesktop(mq.matches);
-    const handler = (e: MediaQueryListEvent) => setIsDesktop(e.matches);
-    mq.addEventListener("change", handler);
-    return () => mq.removeEventListener("change", handler);
-  }, []);
-  return isDesktop;
-}
 
 function CompactCard({
   task,
@@ -56,6 +47,7 @@ function CompactCard({
     3: "var(--text-tertiary)",
   };
 
+  const accentColor = priorityDotColor[task.priority] ?? "var(--text-tertiary)";
   return (
     <div
       onClick={onClick}
@@ -65,10 +57,11 @@ function CompactCard({
       style={{
         background: "var(--bg-elevated)",
         border: "1px solid var(--border)",
+        borderLeft: `3px solid ${accentColor}`,
         borderRadius: "10px",
-        padding: "12px",
+        padding: "12px 12px 12px 9px",
         cursor: isDesktop ? "grab" : "pointer",
-        transition: "border-color 200ms cubic-bezier(0.16,1,0.3,1), opacity 200ms ease",
+        transition: "border-color 200ms cubic-bezier(0.16,1,0.3,1), opacity 200ms ease, transform 150ms ease",
       }}
       onMouseEnter={(e) => {
         (e.currentTarget as HTMLElement).style.borderColor = "var(--border-hover)";
@@ -138,17 +131,17 @@ function CompactCard({
             onClick={(e) => e.stopPropagation()}
             style={{
               marginLeft: "auto",
-              fontSize: "11px",
+              fontSize: "12px",
               fontWeight: 500,
               color: "var(--text-secondary)",
               background: "var(--bg-surface)",
               border: "1px solid var(--border)",
-              borderRadius: "6px",
-              padding: "4px 6px",
+              borderRadius: "8px",
+              padding: "10px 8px",
               cursor: "pointer",
               appearance: "auto",
-              minWidth: "44px",
-              minHeight: "28px",
+              minWidth: "88px",
+              minHeight: "44px",
             }}
           >
             {STATUSES.map((s) => (
@@ -376,7 +369,7 @@ export default function BoardPage() {
   if (loading) {
     return (
       <div style={{ padding: isDesktop ? "0" : "24px 20px" }}>
-        <header style={{ paddingBottom: "16px" }}>
+        <header style={{ paddingBottom: "24px" }}>
           <h1 className="text-h1" style={{ color: "var(--text-primary)" }}>Board</h1>
           <p style={{ marginTop: "4px", fontSize: "12px", fontWeight: 500, color: "var(--text-secondary)" }}>
             Loading...
@@ -398,7 +391,7 @@ export default function BoardPage() {
   if (error) {
     return (
       <div style={{ padding: isDesktop ? "0" : "24px 20px" }}>
-        <header style={{ paddingBottom: "16px" }}>
+        <header style={{ paddingBottom: "24px" }}>
           <h1 className="text-h1" style={{ color: "var(--text-primary)" }}>Board</h1>
         </header>
         <div className="glass-elevated" style={{ padding: "32px 16px", textAlign: "center" }}>
@@ -422,6 +415,8 @@ export default function BoardPage() {
               border: "none",
               borderRadius: "10px",
               cursor: "pointer",
+              outline: "1px solid var(--accent)",
+              outlineOffset: "2px",
               transition: "all 200ms cubic-bezier(0.16,1,0.3,1)",
             }}
           >
@@ -432,10 +427,116 @@ export default function BoardPage() {
     );
   }
 
+  const segmentMinHeight = isDesktop ? "40px" : "44px";
+  const viewToggle = (
+    <div style={{ display: "flex", alignItems: "center", gap: "4px", background: "var(--bg-elevated)", border: "1px solid var(--border)", borderRadius: "10px", padding: "4px" }}>
+      <Link
+        href="/tasks"
+        style={{
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          gap: "6px",
+          padding: "8px 14px",
+          minHeight: segmentMinHeight,
+          fontSize: "13px",
+          fontWeight: 600,
+          borderRadius: "8px",
+          background: "transparent",
+          color: "var(--text-secondary)",
+          border: "1px solid transparent",
+          cursor: "pointer",
+          textDecoration: "none",
+          transition: "all 200ms cubic-bezier(0.16,1,0.3,1)",
+        }}
+      >
+        <ListIcon size={14} />
+        List
+      </Link>
+      <div
+        style={{
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          gap: "6px",
+          padding: "8px 14px",
+          minHeight: segmentMinHeight,
+          fontSize: "13px",
+          fontWeight: 600,
+          borderRadius: "8px",
+          background: "var(--bg-surface)",
+          color: "var(--text-primary)",
+          border: "1px solid var(--border-hover)",
+          cursor: "default",
+        }}
+      >
+        <BoardIcon size={14} />
+        Board
+      </div>
+    </div>
+  );
+
+  const searchInput = (
+    <div
+      style={{
+        display: "flex",
+        alignItems: "center",
+        gap: "10px",
+        background: "var(--bg-elevated)",
+        border: "1px solid var(--border)",
+        borderRadius: "10px",
+        padding: "0 14px",
+        minHeight: "44px",
+        width: isDesktop ? "320px" : "100%",
+        maxWidth: "100%",
+        flexShrink: 0,
+      }}
+    >
+      <SearchIcon size={16} style={{ flexShrink: 0, color: "var(--text-secondary)" }} />
+      <input
+        type="text"
+        value={filters.search}
+        onChange={(e) => setFilters({ ...filters, search: e.target.value })}
+        placeholder="Search tasks..."
+        style={{
+          flex: 1,
+          minHeight: "44px",
+          background: "transparent",
+          fontSize: "14px",
+          color: "var(--text-primary)",
+          border: "none",
+          outline: "none",
+        }}
+      />
+    </div>
+  );
+
   return (
     <div style={{ padding: containerPadding }}>
-      {/* Filter bar */}
-      <div style={{ padding: isDesktop ? "0 0 16px 0" : "16px 20px" }}>
+      {/* Header block */}
+      <header style={{ padding: isDesktop ? "0 0 24px 0" : "24px 20px 16px 20px" }}>
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: "12px", flexWrap: "wrap" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+            <h1 className="text-h1" style={{ color: "var(--text-primary)" }}>Board</h1>
+            <span style={{
+              fontSize: "12px",
+              fontWeight: 500,
+              color: "var(--text-secondary)",
+              fontVariantNumeric: "tabular-nums",
+              padding: "4px 10px",
+              borderRadius: "9999px",
+              background: "var(--bg-surface)",
+            }}>
+              {tasks.length} total
+            </span>
+          </div>
+          {viewToggle}
+        </div>
+      </header>
+
+      {/* Search + Filter bar */}
+      <div style={{ padding: isDesktop ? "0 0 16px 0" : "0 20px 16px 20px", display: "flex", flexDirection: "column", gap: "12px" }}>
+        {searchInput}
         <FilterBar
           filters={filters}
           onFiltersChange={setFilters}
@@ -474,11 +575,16 @@ export default function BoardPage() {
                 display: "flex",
                 flexDirection: "column",
                 scrollSnapAlign: "start",
-                background: isDragOver ? "rgba(94,106,210,0.05)" : "var(--bg-base)",
-                borderRight: colIdx < STATUSES.length - 1 ? "1px solid var(--border)" : "none",
-                border: isDragOver ? "2px dashed var(--accent)" : undefined,
-                borderRadius: isDragOver ? "8px" : undefined,
-                transition: "background 150ms ease, border 150ms ease",
+                background: isDragOver
+                  ? "rgba(94,106,210,0.06)"
+                  : "var(--bg-elevated)",
+                border: "1px solid var(--border)",
+                borderRadius: "10px",
+                boxShadow: isDragOver
+                  ? "inset 0 0 0 1px var(--accent), 0 0 24px rgba(94,106,210,0.25)"
+                  : undefined,
+                marginRight: colIdx < STATUSES.length - 1 ? "12px" : "0",
+                transition: "background 150ms ease, box-shadow 150ms ease",
               }}
             >
               {/* Column header */}

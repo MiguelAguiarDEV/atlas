@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
-import { FolderIcon, PlusIcon } from "@atlas/ui";
+import { FolderIcon, PlusIcon, useIsDesktop } from "@atlas/ui";
 import { listProjects, createProject, type ApiProject } from "@/lib/api/projects";
 import { listTasks, type ApiTask } from "@/lib/api/tasks";
 
@@ -12,18 +12,14 @@ interface ProjectStats {
   percent: number;
 }
 
-const PRESET_COLORS = ["#5E6AD2", "#E5484D", "#F5A524", "#2AF598", "#8B5CF6", "#3B82F6"];
+// Brief-compliant palette only. #3B82F6 (blue) is forbidden per design brief (restrained accent rule).
+const PRESET_COLORS = ["#5E6AD2", "#2AF598", "#F5A524", "#E5484D", "#8B5CF6"];
 
-function useIsDesktop() {
-  const [isDesktop, setIsDesktop] = useState(false);
-  useEffect(() => {
-    const mq = window.matchMedia("(min-width: 768px)");
-    setIsDesktop(mq.matches);
-    const handler = (e: MediaQueryListEvent) => setIsDesktop(e.matches);
-    mq.addEventListener("change", handler);
-    return () => mq.removeEventListener("change", handler);
-  }, []);
-  return isDesktop;
+// Accent fallback that tolerates legacy #3B82F6 rows coming from seed data.
+function normalizeProjectColor(raw: string | null | undefined): string {
+  if (!raw) return "#5E6AD2";
+  if (raw.toLowerCase() === "#3b82f6") return "#5E6AD2";
+  return raw;
 }
 
 function formatRelativeDate(iso: string): string {
@@ -127,7 +123,7 @@ export default function ProjectsPage() {
             Loading...
           </p>
         </header>
-        <div style={{ display: "grid", gridTemplateColumns: isDesktop ? "1fr 1fr" : "1fr", gap: "12px" }}>
+        <div style={{ display: "grid", gridTemplateColumns: isDesktop ? "minmax(0, 1fr) minmax(0, 1fr)" : "minmax(0, 1fr)", gap: "12px" }}>
           {[1, 2, 3, 4].map((i) => (
             <div
               key={i}
@@ -203,7 +199,7 @@ export default function ProjectsPage() {
             padding: "0 14px",
             fontSize: "14px",
             color: "var(--text-primary)",
-            background: "var(--bg-surface)",
+            background: "var(--bg-elevated)",
             border: "1px solid var(--border)",
             borderRadius: "10px",
             outline: "none",
@@ -216,16 +212,35 @@ export default function ProjectsPage() {
             <button
               key={c}
               onClick={() => setNewColor(c)}
+              aria-label={`Pick color ${c}`}
               style={{
-                width: "28px",
-                height: "28px",
+                width: "44px",
+                height: "44px",
+                minWidth: "44px",
+                minHeight: "44px",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
                 borderRadius: "9999px",
-                background: c,
-                border: newColor === c ? "2px solid var(--text-primary)" : "2px solid transparent",
+                background: "transparent",
+                border: "none",
+                padding: 0,
                 cursor: "pointer",
                 transition: "all 150ms ease",
               }}
-            />
+            >
+              <span
+                style={{
+                  display: "block",
+                  width: "28px",
+                  height: "28px",
+                  borderRadius: "9999px",
+                  background: c,
+                  border: newColor === c ? "2px solid var(--text-primary)" : "2px solid transparent",
+                  transition: "all 150ms ease",
+                }}
+              />
+            </button>
           ))}
         </div>
         {/* Actions */}
@@ -233,7 +248,8 @@ export default function ProjectsPage() {
           <button
             onClick={() => setShowCreate(false)}
             style={{
-              padding: "8px 16px",
+              padding: "11px 16px",
+              minHeight: "44px",
               fontSize: "13px",
               fontWeight: 500,
               color: "var(--text-secondary)",
@@ -249,7 +265,8 @@ export default function ProjectsPage() {
             onClick={handleCreate}
             disabled={!newName.trim() || creating}
             style={{
-              padding: "8px 16px",
+              padding: "11px 16px",
+              minHeight: "44px",
               fontSize: "13px",
               fontWeight: 500,
               color: "white",
@@ -293,7 +310,7 @@ export default function ProjectsPage() {
 
   const projectCards = projects.map((project, i) => {
     const stats = tasksByProject.get(project.id) ?? { total: 0, done: 0, percent: 0 };
-    const color = project.color || "#5E6AD2";
+    const color = normalizeProjectColor(project.color);
     return (
       <Link
         key={project.id}
@@ -318,13 +335,13 @@ export default function ProjectsPage() {
           <div style={{ width: "4px", flexShrink: 0, background: color }} />
 
           {/* Card content */}
-          <div style={{ flex: 1, padding: "16px 16px 16px 14px", display: "flex", flexDirection: "column", gap: "10px" }}>
+          <div style={{ flex: 1, padding: "14px 16px 14px 13px", display: "flex", flexDirection: "column", gap: "10px" }}>
             {/* Title row */}
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-              <span style={{ fontSize: "16px", fontWeight: 600, color: "var(--text-primary)" }}>
+              <span style={{ fontSize: "14px", fontWeight: 600, color: "var(--text-primary)", letterSpacing: "-0.01em" }}>
                 {project.name}
               </span>
-              <span style={{ fontSize: "12px", color: "var(--text-tertiary)" }}>
+              <span style={{ fontSize: "12px", color: "var(--text-tertiary)", letterSpacing: "0.01em" }}>
                 {formatRelativeDate(project.updated_at)}
               </span>
             </div>
@@ -381,7 +398,8 @@ export default function ProjectsPage() {
                 display: "flex",
                 alignItems: "center",
                 gap: "6px",
-                padding: "8px 16px",
+                padding: "11px 16px",
+                minHeight: "44px",
                 fontSize: "13px",
                 fontWeight: 500,
                 color: "white",
@@ -408,7 +426,7 @@ export default function ProjectsPage() {
       ) : (
         <div style={{
           display: "grid",
-          gridTemplateColumns: isDesktop ? "1fr 1fr" : "1fr",
+          gridTemplateColumns: isDesktop ? "minmax(0, 1fr) minmax(0, 1fr)" : "minmax(0, 1fr)",
           gap: "12px",
         }}>
           {projectCards}

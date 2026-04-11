@@ -1,6 +1,5 @@
 "use client";
 
-import { useState, useEffect } from "react";
 import Link from "next/link";
 import {
   InboxIcon,
@@ -10,19 +9,8 @@ import {
   RepeatIcon,
   SettingsIcon,
   ChevronRightIcon,
+  useIsDesktop,
 } from "@atlas/ui";
-
-function useIsDesktop() {
-  const [isDesktop, setIsDesktop] = useState(false);
-  useEffect(() => {
-    const mq = window.matchMedia("(min-width: 768px)");
-    setIsDesktop(mq.matches);
-    const handler = (e: MediaQueryListEvent) => setIsDesktop(e.matches);
-    mq.addEventListener("change", handler);
-    return () => mq.removeEventListener("change", handler);
-  }, []);
-  return isDesktop;
-}
 
 const MENU_ITEMS = [
   {
@@ -67,7 +55,7 @@ const MENU_ITEMS = [
     icon: RepeatIcon,
     count: 0,
     iconBg: "rgba(139,92,246,0.12)",
-    iconColor: "#8B5CF6",
+    iconColor: "var(--habit-purple)",
     href: "/more",
   },
   {

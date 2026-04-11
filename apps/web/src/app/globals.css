@@ -58,6 +58,13 @@
   --border-highlight: var(--border-hover);
   --danger: var(--destructive);
   --danger-glow: var(--destructive-glow);
+
+  /* Habit accent */
+  --habit-purple: #8B5CF6;
+
+  /* Layout */
+  --bottom-tab-bar-height: 88px;
+  --header-gap: 24px;
 }
 
 /* --- Reset & Global --- */
@@ -85,11 +92,10 @@ body {
   overflow-x: hidden;
 }
 
-/* --- Focus Visible (P1-02) --- */
+/* --- Focus Visible --- */
 *:focus-visible {
   outline: 2px solid var(--accent);
   outline-offset: 2px;
-  border-radius: 6px;
 }
 
 /* --- Selection --- */
@@ -164,11 +170,13 @@ body {
   background: var(--bg-elevated);
   border: 1px solid var(--border);
   border-radius: var(--radius);
+  padding: 14px 16px;
   transition: all var(--duration) var(--ease-out-expo);
 }
 
 .glass-elevated:hover {
   border-color: var(--border-hover);
+  background: var(--bg-surface);
 }
 
 /* --- Card --- */
@@ -376,4 +384,45 @@ body {
 
 [draggable="true"]:active {
   cursor: grabbing;
+}
+
+/* --- Ambient Gradient Orbs (cinematic depth) --- */
+.ambient-orbs {
+  position: fixed;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.ambient-orb {
+  position: absolute;
+  width: 520px;
+  height: 520px;
+  border-radius: 9999px;
+  filter: blur(100px);
+  opacity: 0.06;
+  pointer-events: none;
+}
+
+.ambient-orb-1 {
+  top: -120px;
+  left: -120px;
+  background: radial-gradient(circle, var(--accent) 0%, transparent 70%);
+}
+
+.ambient-orb-2 {
+  bottom: -180px;
+  right: -120px;
+  background: radial-gradient(circle, var(--accent) 0%, transparent 70%);
+  opacity: 0.05;
+}
+
+.ambient-orb-3 {
+  top: 40%;
+  left: 45%;
+  width: 380px;
+  height: 380px;
+  background: radial-gradient(circle, #8b5cf6 0%, transparent 70%);
+  opacity: 0.04;
 }
