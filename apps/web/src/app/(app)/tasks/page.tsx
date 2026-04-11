@@ -303,7 +303,9 @@ export default function TasksPage() {
         borderRadius: "10px",
         padding: "0 14px",
         minHeight: "44px",
-        flex: isDesktop ? "0 0 320px" : undefined,
+        width: isDesktop ? "320px" : "100%",
+        maxWidth: "100%",
+        flexShrink: 0,
       }}
     >
       <SearchIcon
