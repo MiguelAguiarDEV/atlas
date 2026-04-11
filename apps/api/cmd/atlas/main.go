@@ -19,7 +19,7 @@ import (
 func corsMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Access-Control-Allow-Origin", "*")
-		w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
+		w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, PATCH, DELETE, OPTIONS")
 		w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization")
 		w.Header().Set("Access-Control-Max-Age", "86400")
 		if r.Method == http.MethodOptions {
@@ -78,15 +78,24 @@ func main() {
 	})
 
 	r.Route("/api/v1", func(r chi.Router) {
-		r.Mount("/tasks", taskHandler.Routes())
 		r.Mount("/projects", projectHandler.Routes())
 		r.Mount("/time-entries", timeHandler.Routes())
 		r.Mount("/habits", habitHandler.Routes())
 
-		// Timer routes on tasks
-		r.Route("/tasks/{id}", func(r chi.Router) {
-			r.Post("/timer/start", timeHandler.StartTimer)
-			r.Post("/timer/stop", timeHandler.StopTimer)
+		// Tasks with timer routes — register timer BEFORE mounting the task handler
+		// so the task handler's /{id} routes don't shadow them.
+		r.Route("/tasks", func(r chi.Router) {
+			r.Get("/", taskHandler.List)
+			r.Post("/", taskHandler.Create)
+			r.Route("/{id}", func(r chi.Router) {
+				r.Get("/", taskHandler.GetByID)
+				r.Put("/", taskHandler.Update)
+				r.Delete("/", taskHandler.Delete)
+				r.Post("/events", taskHandler.CreateEvent)
+				r.Get("/events", taskHandler.ListEvents)
+				r.Post("/timer/start", timeHandler.StartTimer)
+				r.Post("/timer/stop", timeHandler.StopTimer)
+			})
 		})
 	})
 
