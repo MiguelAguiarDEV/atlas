@@ -2,9 +2,9 @@
 
 import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
-import { FolderIcon, PlusIcon, useIsDesktop } from "@atlas/ui";
-import { listProjects, createProject, type ApiProject } from "@/lib/api/projects";
-import { listTasks, type ApiTask } from "@/lib/api/tasks";
+import { FolderIcon, PlusIcon, EditIcon, TrashIcon, EditProjectForm, ConfirmDialog, useIsDesktop, type EditProjectValues } from "@atlas/ui";
+import { listProjects, createProject, updateProject, deleteProject, type ApiProject } from "@/lib/api/projects";
+import { listTasks } from "@/lib/api/tasks";
 
 interface ProjectStats {
   total: number;
@@ -46,6 +46,12 @@ export default function ProjectsPage() {
   const [newName, setNewName] = useState("");
   const [newColor, setNewColor] = useState(PRESET_COLORS[0]);
   const [creating, setCreating] = useState(false);
+
+  // Edit / delete state
+  const [editingProject, setEditingProject] = useState<ApiProject | null>(null);
+  const [savingEdit, setSavingEdit] = useState(false);
+  const [deletingProject, setDeletingProject] = useState<ApiProject | null>(null);
+  const [deletingLoading, setDeletingLoading] = useState(false);
 
   const fetchData = useCallback(async () => {
     try {
@@ -106,6 +112,40 @@ export default function ProjectsPage() {
       // stay on form so user can retry
     } finally {
       setCreating(false);
+    }
+  };
+
+  const handleEditSubmit = async (values: EditProjectValues) => {
+    if (!editingProject) return;
+    setSavingEdit(true);
+    try {
+      const res = await updateProject(editingProject.id, {
+        name: values.name,
+        description: values.description,
+        color: values.color,
+      });
+      setProjects((prev) =>
+        prev.map((p) => (p.id === editingProject.id ? res.data : p)),
+      );
+      setEditingProject(null);
+    } catch (err) {
+      console.error("Failed to update project:", err);
+    } finally {
+      setSavingEdit(false);
+    }
+  };
+
+  const handleDeleteConfirm = async () => {
+    if (!deletingProject) return;
+    setDeletingLoading(true);
+    try {
+      await deleteProject(deletingProject.id);
+      setProjects((prev) => prev.filter((p) => p.id !== deletingProject.id));
+      setDeletingProject(null);
+    } catch (err) {
+      console.error("Failed to delete project:", err);
+    } finally {
+      setDeletingLoading(false);
     }
   };
 
@@ -312,71 +352,122 @@ export default function ProjectsPage() {
     const stats = tasksByProject.get(project.id) ?? { total: 0, done: 0, percent: 0 };
     const color = normalizeProjectColor(project.color);
     return (
-      <Link
+      <div
         key={project.id}
-        href={`/projects/${project.id}`}
-        className="animate-fade-in-up"
+        className="glass-elevated animate-fade-in-up"
         style={{
-          display: "block",
-          textDecoration: "none",
-          color: "inherit",
+          display: "flex",
+          overflow: "hidden",
+          borderRadius: "10px",
           animationDelay: `${50 + i * 40}ms`,
+          position: "relative",
         }}
       >
-        <div
-          className="glass-elevated"
+        {/* Left accent bar */}
+        <div style={{ width: "4px", flexShrink: 0, background: color }} />
+
+        {/* Card content (clickable link) */}
+        <Link
+          href={`/projects/${project.id}`}
           style={{
+            flex: 1,
+            padding: "14px 16px 14px 13px",
             display: "flex",
-            overflow: "hidden",
-            borderRadius: "10px",
+            flexDirection: "column",
+            gap: "10px",
+            textDecoration: "none",
+            color: "inherit",
+            minWidth: 0,
           }}
         >
-          {/* Left accent bar */}
-          <div style={{ width: "4px", flexShrink: 0, background: color }} />
-
-          {/* Card content */}
-          <div style={{ flex: 1, padding: "14px 16px 14px 13px", display: "flex", flexDirection: "column", gap: "10px" }}>
-            {/* Title row */}
-            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-              <span style={{ fontSize: "14px", fontWeight: 600, color: "var(--text-primary)", letterSpacing: "-0.01em" }}>
-                {project.name}
-              </span>
-              <span style={{ fontSize: "12px", color: "var(--text-tertiary)", letterSpacing: "0.01em" }}>
-                {formatRelativeDate(project.updated_at)}
-              </span>
-            </div>
-
-            {/* Stats row */}
-            <span style={{ fontSize: "12px", color: "var(--text-secondary)" }}>
-              {stats.total} tasks{" "}
-              {stats.total > 0 && (
-                <>
-                  &middot; {stats.done} done &middot; {stats.percent}%
-                </>
-              )}
+          {/* Title row */}
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: "8px" }}>
+            <span style={{ fontSize: "14px", fontWeight: 600, color: "var(--text-primary)", letterSpacing: "-0.01em", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+              {project.name}
             </span>
-
-            {/* Progress bar */}
-            {stats.total > 0 && (
-              <div style={{
-                width: "100%",
-                height: "4px",
-                borderRadius: "9999px",
-                background: "rgba(255,255,255,0.06)",
-                overflow: "hidden",
-              }}>
-                <div style={{
-                  width: `${stats.percent}%`,
-                  height: "100%",
-                  borderRadius: "9999px",
-                  background: color,
-                  transition: "width 300ms cubic-bezier(0.16,1,0.3,1)",
-                }} />
-              </div>
-            )}
+            <span style={{ fontSize: "12px", color: "var(--text-tertiary)", letterSpacing: "0.01em", flexShrink: 0 }}>
+              {formatRelativeDate(project.updated_at)}
+            </span>
           </div>
+
+          {/* Stats row */}
+          <span style={{ fontSize: "12px", color: "var(--text-secondary)" }}>
+            {stats.total} tasks{" "}
+            {stats.total > 0 && (
+              <>
+                &middot; {stats.done} done &middot; {stats.percent}%
+              </>
+            )}
+          </span>
+
+          {/* Progress bar */}
+          {stats.total > 0 && (
+            <div style={{
+              width: "100%",
+              height: "4px",
+              borderRadius: "9999px",
+              background: "rgba(255,255,255,0.06)",
+              overflow: "hidden",
+            }}>
+              <div style={{
+                width: `${stats.percent}%`,
+                height: "100%",
+                borderRadius: "9999px",
+                background: color,
+                transition: "width 300ms cubic-bezier(0.16,1,0.3,1)",
+              }} />
+            </div>
+          )}
+        </Link>
+
+        {/* Action buttons */}
+        <div
+          style={{
+            display: "flex",
+            flexDirection: "column",
+            gap: "4px",
+            padding: "8px 8px 8px 0",
+            flexShrink: 0,
+          }}
+        >
+          <button
+            onClick={() => setEditingProject(project)}
+            aria-label={`Edit ${project.name}`}
+            style={{
+              width: "44px",
+              height: "44px",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              background: "transparent",
+              border: "none",
+              color: "var(--text-secondary)",
+              cursor: "pointer",
+              borderRadius: "8px",
+            }}
+          >
+            <EditIcon size={16} />
+          </button>
+          <button
+            onClick={() => setDeletingProject(project)}
+            aria-label={`Delete ${project.name}`}
+            style={{
+              width: "44px",
+              height: "44px",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              background: "transparent",
+              border: "none",
+              color: "var(--destructive)",
+              cursor: "pointer",
+              borderRadius: "8px",
+            }}
+          >
+            <TrashIcon size={16} />
+          </button>
         </div>
-      </Link>
+      </div>
     );
   });
 
@@ -432,6 +523,35 @@ export default function ProjectsPage() {
           {projectCards}
         </div>
       )}
+
+      {/* Edit project form */}
+      <EditProjectForm
+        open={editingProject !== null}
+        initial={{
+          name: editingProject?.name ?? "",
+          description: editingProject?.description ?? "",
+          color: normalizeProjectColor(editingProject?.color),
+        }}
+        submitting={savingEdit}
+        onCancel={() => setEditingProject(null)}
+        onSubmit={handleEditSubmit}
+      />
+
+      {/* Delete confirmation */}
+      <ConfirmDialog
+        open={deletingProject !== null}
+        title="Delete project?"
+        message={
+          deletingProject
+            ? `Delete "${deletingProject.name}"? Its tasks will become orphaned. This action cannot be undone.`
+            : undefined
+        }
+        confirmLabel="Delete"
+        destructive
+        loading={deletingLoading}
+        onConfirm={handleDeleteConfirm}
+        onCancel={() => setDeletingProject(null)}
+      />
     </div>
   );
 }

@@ -26,10 +26,14 @@ export interface ApiTask {
 
 export interface CreateTaskInput {
   title: string;
+  description?: string;
   project_id?: number;
   status?: string;
   priority?: string;
+  energy?: string;
   estimated_mins?: number;
+  task_type?: string;
+  context_tags?: string[];
   due_at?: string;
 }
 
@@ -39,7 +43,10 @@ export interface UpdateTaskInput {
   status?: string;
   priority?: string;
   project_id?: number;
+  energy?: string;
   estimated_mins?: number;
+  task_type?: string;
+  context_tags?: string[];
   due_at?: string;
 }
 

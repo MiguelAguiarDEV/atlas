@@ -18,6 +18,7 @@ interface TaskDetailPanelProps {
   onDescriptionSave?: (id: string, description: string) => void;
   onCommentAdd?: (id: string, text: string) => void;
   onPriorityChange?: (id: string, priority: number) => void;
+  onDelete?: (id: string) => void;
   comments?: TaskComment[];
   description?: string;
 }
@@ -78,9 +79,11 @@ export function TaskDetailPanel({
   onDescriptionSave,
   onCommentAdd,
   onPriorityChange,
+  onDelete,
   comments = [],
   description: externalDescription,
 }: TaskDetailPanelProps) {
+  const [confirmingDelete, setConfirmingDelete] = useState(false);
   const isDesktop = useIsDesktop();
   const [mounted, setMounted] = useState(false);
   const [visible, setVisible] = useState(false);
@@ -108,6 +111,7 @@ export function TaskDetailPanel({
       setCommentValue("");
       setEditingTitle(false);
       setSavedIndicator(false);
+      setConfirmingDelete(false);
       setMounted(true);
       requestAnimationFrame(() => {
         requestAnimationFrame(() => {
@@ -620,6 +624,7 @@ export function TaskDetailPanel({
                   }}
                 />
                 <button
+                  type="button"
                   onClick={handleCommentSubmit}
                   disabled={!commentValue.trim() || submittingComment}
                   style={{
@@ -655,6 +660,113 @@ export function TaskDetailPanel({
               </div>
             </div>
           </div>
+
+          {/* Danger zone */}
+          {onDelete && (
+            <div
+              style={{
+                marginTop: "32px",
+                paddingTop: "20px",
+                borderTop: "1px solid rgba(255,255,255,0.08)",
+              }}
+            >
+              {!confirmingDelete ? (
+                <button
+                  type="button"
+                  onClick={() => setConfirmingDelete(true)}
+                  style={{
+                    display: "inline-flex",
+                    alignItems: "center",
+                    gap: "8px",
+                    minHeight: "44px",
+                    padding: "0 16px",
+                    fontSize: "13px",
+                    fontWeight: 500,
+                    color: "var(--destructive)",
+                    background: "rgba(229,72,77,0.08)",
+                    border: "1px solid rgba(229,72,77,0.24)",
+                    borderRadius: "10px",
+                    cursor: "pointer",
+                  }}
+                >
+                  <svg
+                    width="14"
+                    height="14"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth={2}
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  >
+                    <polyline points="3 6 5 6 21 6" />
+                    <path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2" />
+                  </svg>
+                  Delete task
+                </button>
+              ) : (
+                <div
+                  style={{
+                    padding: "14px",
+                    background: "rgba(229,72,77,0.08)",
+                    border: "1px solid rgba(229,72,77,0.24)",
+                    borderRadius: "10px",
+                  }}
+                >
+                  <p
+                    style={{
+                      fontSize: "13px",
+                      color: "var(--text-primary)",
+                      margin: 0,
+                      marginBottom: "10px",
+                      fontWeight: 500,
+                    }}
+                  >
+                    Delete &quot;{task.title}&quot;? This cannot be undone.
+                  </p>
+                  <div style={{ display: "flex", gap: "8px" }}>
+                    <button
+                      type="button"
+                      onClick={() => setConfirmingDelete(false)}
+                      style={{
+                        minHeight: "40px",
+                        padding: "0 14px",
+                        fontSize: "12px",
+                        fontWeight: 500,
+                        color: "var(--text-secondary)",
+                        background: "transparent",
+                        border: "1px solid rgba(255,255,255,0.12)",
+                        borderRadius: "8px",
+                        cursor: "pointer",
+                      }}
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        onDelete(task.id);
+                        setConfirmingDelete(false);
+                      }}
+                      style={{
+                        minHeight: "40px",
+                        padding: "0 14px",
+                        fontSize: "12px",
+                        fontWeight: 600,
+                        color: "white",
+                        background: "var(--destructive)",
+                        border: "none",
+                        borderRadius: "8px",
+                        cursor: "pointer",
+                      }}
+                    >
+                      Delete
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
         </div>
       </div>
     </>

@@ -3,12 +3,15 @@
 export const dynamic = "force-dynamic";
 
 import { useState, useEffect, useCallback, useRef } from "react";
-import { TimerDisplay, ClockIcon, useIsDesktop } from "@atlas/ui";
+import { TimerDisplay, ClockIcon, PlusIcon, EditIcon, TrashIcon, ManualTimeEntryForm, ConfirmDialog, useIsDesktop, type ManualTimeEntryValues } from "@atlas/ui";
 import { listTasks, updateTask, type ApiTask } from "@/lib/api/tasks";
 import {
   listTimeEntries,
   startTimer,
   stopTimer,
+  createTimeEntry,
+  updateTimeEntry,
+  deleteTimeEntry,
   type ApiTimeEntry,
 } from "@/lib/api/time-entries";
 import { formatDuration } from "@/lib/mappers";
@@ -27,6 +30,11 @@ export default function TimerPage() {
   const [timerError, setTimerError] = useState<string | null>(null);
   const [showTaskSelector, setShowTaskSelector] = useState(false);
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const [showManualForm, setShowManualForm] = useState(false);
+  const [editingEntry, setEditingEntry] = useState<ApiTimeEntry | null>(null);
+  const [savingEntry, setSavingEntry] = useState(false);
+  const [deletingEntry, setDeletingEntry] = useState<ApiTimeEntry | null>(null);
+  const [deletingEntryLoading, setDeletingEntryLoading] = useState(false);
 
   const fetchData = useCallback(async () => {
     try {
@@ -142,6 +150,57 @@ export default function TimerPage() {
     setTimerSeconds(0);
     setTimerRunning(false);
     setActiveEntry(null);
+  };
+
+  const handleManualSubmit = async (values: ManualTimeEntryValues) => {
+    setSavingEntry(true);
+    try {
+      if (editingEntry) {
+        await updateTimeEntry(editingEntry.id, {
+          task_id: values.task_id ?? null,
+          started_at: values.started_at,
+          ended_at: values.ended_at ?? null,
+          duration_secs: values.duration_secs,
+          notes: values.notes ?? null,
+        });
+      } else {
+        await createTimeEntry({
+          task_id: values.task_id,
+          started_at: values.started_at,
+          ended_at: values.ended_at,
+          duration_secs: values.duration_secs,
+          notes: values.notes,
+          source: "manual",
+        });
+      }
+      setShowManualForm(false);
+      setEditingEntry(null);
+      // Refresh entries
+      const entriesRes = await listTimeEntries({ limit: 20 });
+      setRecentEntries(
+        (entriesRes.data ?? [])
+          .filter((e) => e.ended_at && (e.duration_secs ?? 0) >= 60)
+          .slice(0, 5),
+      );
+    } catch (err) {
+      console.error("Failed to save time entry:", err);
+    } finally {
+      setSavingEntry(false);
+    }
+  };
+
+  const handleDeleteEntry = async () => {
+    if (!deletingEntry) return;
+    setDeletingEntryLoading(true);
+    try {
+      await deleteTimeEntry(deletingEntry.id);
+      setRecentEntries((prev) => prev.filter((e) => e.id !== deletingEntry.id));
+      setDeletingEntry(null);
+    } catch (err) {
+      console.error("Failed to delete entry:", err);
+    } finally {
+      setDeletingEntryLoading(false);
+    }
   };
 
   const handleSelectTask = async (taskId: number) => {
@@ -429,7 +488,7 @@ export default function TimerPage() {
       <div
         style={{
           display: "grid",
-          gridTemplateColumns: "1fr 120px 100px",
+          gridTemplateColumns: "1fr 120px 100px 96px",
           padding: "12px 16px",
           borderBottom: "1px solid var(--border)",
           gap: "12px",
@@ -438,6 +497,7 @@ export default function TimerPage() {
         <span style={{ fontSize: "12px", fontWeight: 500, color: "var(--text-secondary)" }}>Task</span>
         <span style={{ fontSize: "12px", fontWeight: 500, color: "var(--text-secondary)" }}>Time</span>
         <span style={{ fontSize: "12px", fontWeight: 500, color: "var(--text-secondary)", textAlign: "right" }}>Duration</span>
+        <span />
       </div>
       {recentEntries.map((entry, i) => {
         const task = tasks.find((t) => t.id === entry.task_id);
@@ -448,11 +508,12 @@ export default function TimerPage() {
             className="animate-fade-in-up"
             style={{
               display: "grid",
-              gridTemplateColumns: "1fr 120px 100px",
+              gridTemplateColumns: "1fr 120px 100px 96px",
               padding: "12px 16px",
               gap: "12px",
               borderBottom: i < recentEntries.length - 1 ? "1px solid rgba(255,255,255,0.04)" : "none",
               animationDelay: `${200 + i * 50}ms`,
+              alignItems: "center",
             }}
           >
             <div style={{ display: "flex", alignItems: "center", gap: "12px", minWidth: 0 }}>
@@ -477,6 +538,44 @@ export default function TimerPage() {
             }}>
               {entry.duration_secs ? formatDuration(entry.duration_secs) : "--"}
             </span>
+            <div style={{ display: "flex", gap: "2px", justifyContent: "flex-end" }}>
+              <button
+                onClick={() => { setEditingEntry(entry); setShowManualForm(true); }}
+                aria-label="Edit entry"
+                style={{
+                  width: "36px",
+                  height: "36px",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  background: "transparent",
+                  border: "none",
+                  color: "var(--text-secondary)",
+                  cursor: "pointer",
+                  borderRadius: "8px",
+                }}
+              >
+                <EditIcon size={14} />
+              </button>
+              <button
+                onClick={() => setDeletingEntry(entry)}
+                aria-label="Delete entry"
+                style={{
+                  width: "36px",
+                  height: "36px",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  background: "transparent",
+                  border: "none",
+                  color: "var(--destructive)",
+                  cursor: "pointer",
+                  borderRadius: "8px",
+                }}
+              >
+                <TrashIcon size={14} />
+              </button>
+            </div>
           </div>
         );
       })}
@@ -494,8 +593,8 @@ export default function TimerPage() {
             style={{
               display: "flex",
               alignItems: "center",
-              gap: "12px",
-              padding: "12px 16px",
+              gap: "8px",
+              padding: "8px 12px",
               borderRadius: "10px",
               transition: "background 200ms cubic-bezier(0.16,1,0.3,1)",
               animationDelay: `${200 + i * 50}ms`,
@@ -520,6 +619,46 @@ export default function TimerPage() {
             }}>
               {entry.duration_secs ? formatDuration(entry.duration_secs) : "--"}
             </span>
+            <button
+              onClick={() => { setEditingEntry(entry); setShowManualForm(true); }}
+              aria-label="Edit entry"
+              style={{
+                width: "36px",
+                height: "36px",
+                minWidth: "36px",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                background: "transparent",
+                border: "none",
+                color: "var(--text-secondary)",
+                cursor: "pointer",
+                borderRadius: "8px",
+                flexShrink: 0,
+              }}
+            >
+              <EditIcon size={14} />
+            </button>
+            <button
+              onClick={() => setDeletingEntry(entry)}
+              aria-label="Delete entry"
+              style={{
+                width: "36px",
+                height: "36px",
+                minWidth: "36px",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                background: "transparent",
+                border: "none",
+                color: "var(--destructive)",
+                cursor: "pointer",
+                borderRadius: "8px",
+                flexShrink: 0,
+              }}
+            >
+              <TrashIcon size={14} />
+            </button>
           </div>
         );
       })}
@@ -633,11 +772,66 @@ export default function TimerPage() {
 
       {/* Recent sessions */}
       <section className="animate-fade-in-up">
-        <h2 style={{ fontSize: "14px", fontWeight: 600, color: "var(--text-primary)", marginBottom: "12px" }}>
-          Recent Sessions
-        </h2>
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "12px" }}>
+          <h2 style={{ fontSize: "14px", fontWeight: 600, color: "var(--text-primary)", margin: 0 }}>
+            Recent Sessions
+          </h2>
+          <button
+            onClick={() => { setEditingEntry(null); setShowManualForm(true); }}
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: "6px",
+              padding: "8px 12px",
+              minHeight: "36px",
+              fontSize: "12px",
+              fontWeight: 500,
+              color: "var(--text-secondary)",
+              background: "var(--bg-elevated)",
+              border: "1px solid var(--border)",
+              borderRadius: "8px",
+              cursor: "pointer",
+            }}
+          >
+            <PlusIcon size={14} />
+            Manual entry
+          </button>
+        </div>
         {recentSessionsContent}
       </section>
+
+      {/* Manual time entry form */}
+      <ManualTimeEntryForm
+        open={showManualForm}
+        mode={editingEntry ? "edit" : "create"}
+        tasks={tasks.map((t) => ({ id: t.id, title: t.title }))}
+        initial={
+          editingEntry
+            ? {
+                task_id: editingEntry.task_id,
+                started_at: editingEntry.started_at,
+                ended_at: editingEntry.ended_at,
+                duration_secs: editingEntry.duration_secs,
+                notes: editingEntry.notes,
+              }
+            : undefined
+        }
+        submitting={savingEntry}
+        onCancel={() => { setShowManualForm(false); setEditingEntry(null); }}
+        onSubmit={handleManualSubmit}
+      />
+
+      {/* Delete entry confirmation */}
+      <ConfirmDialog
+        open={deletingEntry !== null}
+        title="Delete time entry?"
+        message="This will permanently remove this time entry. Cannot be undone."
+        confirmLabel="Delete"
+        destructive
+        loading={deletingEntryLoading}
+        onConfirm={handleDeleteEntry}
+        onCancel={() => setDeletingEntry(null)}
+      />
     </div>
   );
 }
