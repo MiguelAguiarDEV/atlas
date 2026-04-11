@@ -3,8 +3,8 @@
 export const dynamic = "force-dynamic";
 
 import { useState, useEffect, useCallback } from "react";
-import { TaskCard, TaskDetailPanel, SearchIcon, ListIcon, BoardIcon, FilterBar, applyFilters, DEFAULT_FILTERS, useIsDesktop, type TaskData, type TaskComment, type TaskFilters, type ProjectOption } from "@atlas/ui";
-import { listTasks, updateTask, getTask, createTaskEvent, listTaskEvents } from "@/lib/api/tasks";
+import { TaskCard, TaskDetailPanel, SearchIcon, ListIcon, BoardIcon, FilterBar, NewTaskForm, PlusIcon, applyFilters, DEFAULT_FILTERS, useIsDesktop, type TaskData, type TaskComment, type TaskFilters, type ProjectOption, type NewTaskFormValues } from "@atlas/ui";
+import { listTasks, createTask, updateTask, deleteTask, getTask, createTaskEvent, listTaskEvents } from "@/lib/api/tasks";
 import { listProjects, type ApiProject } from "@/lib/api/projects";
 import { toTaskData, toPriorityString } from "@/lib/mappers";
 import Link from "next/link";
@@ -20,6 +20,8 @@ export default function TasksPage() {
   const [panelOpen, setPanelOpen] = useState(false);
   const [taskComments, setTaskComments] = useState<TaskComment[]>([]);
   const [taskDescription, setTaskDescription] = useState<string>("");
+  const [showNewTaskForm, setShowNewTaskForm] = useState(false);
+  const [submittingNewTask, setSubmittingNewTask] = useState(false);
 
   const fetchData = useCallback(async () => {
     try {
@@ -130,6 +132,43 @@ export default function TasksPage() {
     } catch (err) {
       console.error("Failed to update priority:", err);
       fetchData();
+    }
+  };
+
+  const handleTaskDelete = async (id: string) => {
+    const previous = tasks;
+    setTasks((prev) => prev.filter((t) => t.id !== id));
+    setPanelOpen(false);
+    setSelectedTask(null);
+    try {
+      await deleteTask(Number(id));
+    } catch (err) {
+      console.error("Failed to delete task:", err);
+      setTasks(previous);
+    }
+  };
+
+  const handleCreateTask = async (values: NewTaskFormValues) => {
+    setSubmittingNewTask(true);
+    try {
+      await createTask({
+        title: values.title,
+        description: values.description,
+        project_id: values.project_id,
+        priority: values.priority,
+        status: values.status,
+        energy: values.energy,
+        estimated_mins: values.estimated_mins,
+        task_type: values.task_type,
+        context_tags: values.context_tags,
+        due_at: values.due_at,
+      });
+      setShowNewTaskForm(false);
+      await fetchData();
+    } catch (err) {
+      console.error("Failed to create task:", err);
+    } finally {
+      setSubmittingNewTask(false);
     }
   };
 
@@ -286,6 +325,27 @@ export default function TasksPage() {
           }}>
             {tasks.length} total
           </span>
+          <button
+            onClick={() => setShowNewTaskForm(true)}
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: "6px",
+              padding: "11px 16px",
+              minHeight: "44px",
+              fontSize: "13px",
+              fontWeight: 500,
+              color: "white",
+              background: "var(--accent)",
+              border: "none",
+              borderRadius: "10px",
+              cursor: "pointer",
+              transition: "all 200ms cubic-bezier(0.16,1,0.3,1)",
+            }}
+          >
+            <PlusIcon size={16} />
+            New Task
+          </button>
           {viewToggle}
         </div>
       </div>
@@ -427,8 +487,18 @@ export default function TasksPage() {
         onDescriptionSave={handleDescriptionSave}
         onCommentAdd={handleCommentAdd}
         onPriorityChange={handlePriorityChange}
+        onDelete={handleTaskDelete}
         comments={taskComments}
         description={taskDescription}
+      />
+
+      {/* New Task Form */}
+      <NewTaskForm
+        open={showNewTaskForm}
+        projects={projectOptions}
+        submitting={submittingNewTask}
+        onCancel={() => setShowNewTaskForm(false)}
+        onSubmit={handleCreateTask}
       />
     </div>
   );

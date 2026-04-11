@@ -56,7 +56,7 @@ const MENU_ITEMS = [
     count: 0,
     iconBg: "rgba(139,92,246,0.12)",
     iconColor: "var(--habit-purple)",
-    href: "/more",
+    href: "/habits",
   },
   {
     label: "Settings",

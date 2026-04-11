@@ -9,6 +9,22 @@ export { TaskDetailPanel, type TaskComment } from "./task-detail-panel";
 export { QuickCapture } from "./quick-capture";
 export { HabitCheck } from "./habit-check";
 export { useIsDesktop } from "./use-is-desktop";
+export { ConfirmDialog } from "./confirm-dialog";
+export { NewTaskForm, type NewTaskFormValues } from "./new-task-form";
+export {
+  HabitForm,
+  type HabitFormValues,
+  type HabitFormInitial,
+} from "./habit-form";
+export {
+  EditProjectForm,
+  type EditProjectValues,
+} from "./edit-project-form";
+export {
+  ManualTimeEntryForm,
+  type ManualTimeEntryValues,
+  type ManualTimeEntryInitial,
+} from "./manual-time-entry-form";
 export {
   FilterBar,
   applyFilters,
@@ -45,4 +61,6 @@ export {
   CloseIcon,
   ArrowLeftIcon,
   ChevronDownIcon,
+  TrashIcon,
+  EditIcon,
 } from "./icons";

@@ -13,6 +13,26 @@ export interface ApiTimeEntry {
   created_at: string;
 }
 
+export interface CreateTimeEntryInput {
+  task_id?: number;
+  started_at: string;
+  ended_at?: string;
+  duration_secs?: number;
+  entry_type?: string;
+  source?: string;
+  notes?: string;
+}
+
+export interface UpdateTimeEntryInput {
+  task_id?: number | null;
+  started_at?: string;
+  ended_at?: string | null;
+  duration_secs?: number;
+  entry_type?: string;
+  source?: string;
+  notes?: string | null;
+}
+
 export async function listTimeEntries(params?: {
   task_id?: number;
   limit?: number;
@@ -27,6 +47,29 @@ export async function listTimeEntries(params?: {
   return apiFetch<ApiTimeEntry[]>(
     `/api/v1/time-entries${query ? `?${query}` : ""}`,
   );
+}
+
+export async function createTimeEntry(
+  input: CreateTimeEntryInput,
+): Promise<ApiResponse<ApiTimeEntry>> {
+  return apiFetch<ApiTimeEntry>("/api/v1/time-entries", {
+    method: "POST",
+    body: JSON.stringify(input),
+  });
+}
+
+export async function updateTimeEntry(
+  id: number,
+  input: UpdateTimeEntryInput,
+): Promise<ApiResponse<ApiTimeEntry>> {
+  return apiFetch<ApiTimeEntry>(`/api/v1/time-entries/${id}`, {
+    method: "PUT",
+    body: JSON.stringify(input),
+  });
+}
+
+export async function deleteTimeEntry(id: number): Promise<void> {
+  await apiFetch(`/api/v1/time-entries/${id}`, { method: "DELETE" });
 }
 
 export async function startTimer(

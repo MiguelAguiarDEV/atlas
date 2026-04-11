@@ -1,11 +1,11 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
-import { TaskCard, ArrowLeftIcon, FolderIcon, useIsDesktop, type TaskData } from "@atlas/ui";
-import { getProject, type ApiProject } from "@/lib/api/projects";
-import { listTasks, updateTask, type ApiTask } from "@/lib/api/tasks";
+import { TaskCard, ArrowLeftIcon, FolderIcon, EditIcon, TrashIcon, EditProjectForm, ConfirmDialog, useIsDesktop, type TaskData, type EditProjectValues } from "@atlas/ui";
+import { getProject, updateProject, deleteProject, type ApiProject } from "@/lib/api/projects";
+import { listTasks, updateTask } from "@/lib/api/tasks";
 import { toTaskData } from "@/lib/mappers";
 
 function normalizeProjectColor(raw: string | null | undefined): string {
@@ -53,6 +53,7 @@ function groupByStatus(tasks: TaskData[]): Record<StatusGroup, TaskData[]> {
 
 export default function ProjectDetailPage() {
   const params = useParams();
+  const router = useRouter();
   const projectId = Number(params.id);
   const isDesktop = useIsDesktop();
 
@@ -61,6 +62,10 @@ export default function ProjectDetailPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [viewMode, setViewMode] = useState<ViewMode>("list");
+  const [editOpen, setEditOpen] = useState(false);
+  const [savingEdit, setSavingEdit] = useState(false);
+  const [confirmDelete, setConfirmDelete] = useState(false);
+  const [deleting, setDeleting] = useState(false);
 
   const fetchData = useCallback(async () => {
     try {
@@ -86,6 +91,37 @@ export default function ProjectDetailPage() {
   useEffect(() => {
     fetchData();
   }, [fetchData]);
+
+  const handleEditSubmit = async (values: EditProjectValues) => {
+    if (!project) return;
+    setSavingEdit(true);
+    try {
+      const res = await updateProject(project.id, {
+        name: values.name,
+        description: values.description,
+        color: values.color,
+      });
+      setProject(res.data);
+      setEditOpen(false);
+    } catch (err) {
+      console.error("Failed to update project:", err);
+    } finally {
+      setSavingEdit(false);
+    }
+  };
+
+  const handleDeleteConfirm = async () => {
+    if (!project) return;
+    setDeleting(true);
+    try {
+      await deleteProject(project.id);
+      router.push("/projects");
+    } catch (err) {
+      console.error("Failed to delete project:", err);
+      setDeleting(false);
+      setConfirmDelete(false);
+    }
+  };
 
   const handleToggle = async (id: string) => {
     const task = tasks.find((t) => t.id === id);
@@ -342,18 +378,58 @@ export default function ProjectDetailPage() {
 
       {/* Header */}
       <header className="animate-fade-in-up" style={{ paddingBottom: "24px" }}>
-        <div style={{ display: "flex", alignItems: "center", gap: "12px", marginBottom: "8px" }}>
-          {/* Color indicator */}
-          <div style={{
-            width: "12px",
-            height: "12px",
-            borderRadius: "9999px",
-            background: color,
-            flexShrink: 0,
-          }} />
-          <h1 className="text-h1" style={{ color: "var(--text-primary)" }}>
-            {project.name}
-          </h1>
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: "12px", marginBottom: "8px" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: "12px", minWidth: 0, flex: 1 }}>
+            {/* Color indicator */}
+            <div style={{
+              width: "12px",
+              height: "12px",
+              borderRadius: "9999px",
+              background: color,
+              flexShrink: 0,
+            }} />
+            <h1 className="text-h1" style={{ color: "var(--text-primary)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+              {project.name}
+            </h1>
+          </div>
+          <div style={{ display: "flex", gap: "8px", flexShrink: 0 }}>
+            <button
+              onClick={() => setEditOpen(true)}
+              aria-label="Edit project"
+              style={{
+                width: "44px",
+                height: "44px",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                background: "var(--bg-elevated)",
+                border: "1px solid var(--border)",
+                borderRadius: "10px",
+                color: "var(--text-secondary)",
+                cursor: "pointer",
+              }}
+            >
+              <EditIcon size={16} />
+            </button>
+            <button
+              onClick={() => setConfirmDelete(true)}
+              aria-label="Delete project"
+              style={{
+                width: "44px",
+                height: "44px",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                background: "var(--bg-elevated)",
+                border: "1px solid var(--border)",
+                borderRadius: "10px",
+                color: "var(--destructive)",
+                cursor: "pointer",
+              }}
+            >
+              <TrashIcon size={16} />
+            </button>
+          </div>
         </div>
         {project.description && (
           <p style={{ fontSize: "14px", color: "var(--text-secondary)", lineHeight: 1.5 }}>
@@ -454,6 +530,31 @@ export default function ProjectDetailPage() {
 
       {/* Task content */}
       {viewMode === "board" ? boardView : listView}
+
+      {/* Edit form */}
+      <EditProjectForm
+        open={editOpen}
+        initial={{
+          name: project.name,
+          description: project.description ?? "",
+          color: normalizeProjectColor(project.color),
+        }}
+        submitting={savingEdit}
+        onCancel={() => setEditOpen(false)}
+        onSubmit={handleEditSubmit}
+      />
+
+      {/* Delete confirmation */}
+      <ConfirmDialog
+        open={confirmDelete}
+        title="Delete project?"
+        message={`Delete "${project.name}"? Its tasks will become orphaned. This action cannot be undone.`}
+        confirmLabel="Delete"
+        destructive
+        loading={deleting}
+        onConfirm={handleDeleteConfirm}
+        onCancel={() => setConfirmDelete(false)}
+      />
     </div>
   );
 }

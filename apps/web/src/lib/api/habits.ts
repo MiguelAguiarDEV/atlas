@@ -21,8 +21,48 @@ export interface ApiHabitCompletion {
   notes: string | null;
 }
 
+export interface CreateHabitInput {
+  name: string;
+  description?: string;
+  frequency?: string;
+  target_count?: number;
+  habit_group?: string;
+}
+
+export interface UpdateHabitInput {
+  name?: string;
+  description?: string | null;
+  frequency?: string;
+  target_count?: number;
+  habit_group?: string | null;
+  active?: boolean;
+}
+
 export async function listHabits(): Promise<ApiResponse<ApiHabit[]>> {
   return apiFetch<ApiHabit[]>("/api/v1/habits");
+}
+
+export async function createHabit(
+  input: CreateHabitInput,
+): Promise<ApiResponse<ApiHabit>> {
+  return apiFetch<ApiHabit>("/api/v1/habits", {
+    method: "POST",
+    body: JSON.stringify(input),
+  });
+}
+
+export async function updateHabit(
+  id: number,
+  input: UpdateHabitInput,
+): Promise<ApiResponse<ApiHabit>> {
+  return apiFetch<ApiHabit>(`/api/v1/habits/${id}`, {
+    method: "PUT",
+    body: JSON.stringify(input),
+  });
+}
+
+export async function deleteHabit(id: number): Promise<void> {
+  await apiFetch(`/api/v1/habits/${id}`, { method: "DELETE" });
 }
 
 export async function completeHabit(
