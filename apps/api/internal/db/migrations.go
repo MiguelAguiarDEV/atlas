@@ -135,6 +135,12 @@ CREATE TABLE IF NOT EXISTS saved_views (
     sort_order  INTEGER NOT NULL DEFAULT 0,
     created_at  TIMESTAMPTZ NOT NULL DEFAULT now()
 );
+
+-- Normalize legacy status vocabulary. The canonical status set is:
+--   inbox, ready, in_progress, in_review, done, cancelled
+-- Older rows may still use 'todo' — remap them to 'inbox' so board columns
+-- and list filter pills stay in sync.
+UPDATE tasks SET status = 'inbox' WHERE status = 'todo';
 `
 
 // RunMigrations executes the schema DDL against the pool.

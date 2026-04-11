@@ -16,7 +16,7 @@ import {
 } from "@atlas/ui";
 import { listTasks, createTask, updateTask } from "@/lib/api/tasks";
 import { listProjects, type ApiProject } from "@/lib/api/projects";
-import { listHabits, completeHabit, type ApiHabit } from "@/lib/api/habits";
+import { listHabits, completeHabit, listCompletionsForDate, type ApiHabit } from "@/lib/api/habits";
 import { toTaskData } from "@/lib/mappers";
 
 function getGreeting(): { text: string; icon: typeof SunIcon } {
@@ -91,11 +91,15 @@ export default function TodayPage() {
     try {
       setLoading(true);
       setError(null);
-      const [tasksRes, projectsRes, habitsRes] = await Promise.all([
-        listTasks({ limit: 20 }),
-        listProjects(),
-        listHabits(),
-      ]);
+      const [tasksRes, projectsRes, habitsRes, completionsRes] =
+        await Promise.all([
+          listTasks({ limit: 20 }),
+          listProjects(),
+          listHabits(),
+          listCompletionsForDate("today").catch(() => ({
+            data: [] as { habit_id: number }[],
+          })),
+        ]);
 
       const pMap = new Map<number, ApiProject>();
       for (const p of projectsRes.data ?? []) {
@@ -108,6 +112,11 @@ export default function TodayPage() {
           .map((t) => toTaskData(t, pMap)),
       );
       setHabits(habitsRes.data ?? []);
+      // Hydrate today's completed-habit set so the UI reflects prior completions.
+      const doneToday = new Set<number>(
+        (completionsRes.data ?? []).map((c) => c.habit_id),
+      );
+      setCompletedHabits(doneToday);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to load data");
     } finally {
@@ -314,7 +323,7 @@ export default function TodayPage() {
               key={habit.id}
               id={String(habit.id)}
               label={habit.name}
-              defaultChecked={completedHabits.has(habit.id)}
+              checked={completedHabits.has(habit.id)}
               onToggle={handleHabitToggle}
             />
           ))}

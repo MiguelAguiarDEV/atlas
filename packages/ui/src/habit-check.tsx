@@ -1,12 +1,14 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { CheckIcon } from "./icons";
 
 interface HabitCheckProps {
   id: string;
   label: string;
   streak?: number;
+  /** Controlled checked state. When provided, component reflects this value. */
+  checked?: boolean;
   defaultChecked?: boolean;
   onToggle?: (id: string, checked: boolean) => void;
   className?: string;
@@ -16,15 +18,28 @@ export function HabitCheck({
   id,
   label,
   streak = 0,
+  checked: controlledChecked,
   defaultChecked = false,
   onToggle,
   className = "",
 }: HabitCheckProps) {
-  const [checked, setChecked] = useState(defaultChecked);
+  const [internalChecked, setInternalChecked] = useState(defaultChecked);
+
+  // Sync internal state when a controlled value is provided (e.g., after
+  // the Today page loads "completed today" state post-mount).
+  useEffect(() => {
+    if (controlledChecked !== undefined) {
+      setInternalChecked(controlledChecked);
+    }
+  }, [controlledChecked]);
+
+  const checked = controlledChecked ?? internalChecked;
 
   const handleToggle = () => {
     const next = !checked;
-    setChecked(next);
+    if (controlledChecked === undefined) {
+      setInternalChecked(next);
+    }
     onToggle?.(id, next);
   };
 

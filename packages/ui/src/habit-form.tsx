@@ -156,24 +156,30 @@ export function HabitForm({
 
         <div style={{ padding: "20px 24px", overflowY: "auto", flex: 1 }}>
           <div style={{ marginBottom: "14px" }}>
-            <label style={LABEL_STYLE}>Name *</label>
+            <label htmlFor="habit-form-name" style={LABEL_STYLE}>Name *</label>
             <input
+              id="habit-form-name"
+              name="name"
               type="text"
               value={name}
               onChange={(e) => setName(e.target.value)}
               placeholder="e.g. Read 30 minutes"
               autoFocus
+              aria-label="Habit name"
               style={INPUT_STYLE}
             />
           </div>
 
           <div style={{ marginBottom: "14px" }}>
-            <label style={LABEL_STYLE}>Description</label>
+            <label htmlFor="habit-form-description" style={LABEL_STYLE}>Description</label>
             <textarea
+              id="habit-form-description"
+              name="description"
               value={description}
               onChange={(e) => setDescription(e.target.value)}
               placeholder="Optional notes..."
               rows={2}
+              aria-label="Habit description"
               style={{
                 ...INPUT_STYLE,
                 minHeight: "64px",
@@ -192,10 +198,13 @@ export function HabitForm({
             }}
           >
             <div>
-              <label style={LABEL_STYLE}>Frequency</label>
+              <label htmlFor="habit-form-frequency" style={LABEL_STYLE}>Frequency</label>
               <select
+                id="habit-form-frequency"
+                name="frequency"
                 value={frequency}
                 onChange={(e) => setFrequency(e.target.value)}
+                aria-label="Frequency"
                 style={INPUT_STYLE}
               >
                 {FREQUENCY_OPTIONS.map((f) => (
@@ -206,24 +215,30 @@ export function HabitForm({
               </select>
             </div>
             <div>
-              <label style={LABEL_STYLE}>Target count</label>
+              <label htmlFor="habit-form-target" style={LABEL_STYLE}>Target count</label>
               <input
+                id="habit-form-target"
+                name="target_count"
                 type="number"
                 min="1"
                 value={targetCount}
                 onChange={(e) => setTargetCount(e.target.value)}
+                aria-label="Target count"
                 style={INPUT_STYLE}
               />
             </div>
           </div>
 
           <div style={{ marginBottom: "4px" }}>
-            <label style={LABEL_STYLE}>Group (optional)</label>
+            <label htmlFor="habit-form-group" style={LABEL_STYLE}>Group (optional)</label>
             <input
+              id="habit-form-group"
+              name="habit_group"
               type="text"
               value={habitGroup}
               onChange={(e) => setHabitGroup(e.target.value)}
               placeholder="e.g. Morning routine"
+              aria-label="Habit group"
               style={INPUT_STYLE}
             />
           </div>

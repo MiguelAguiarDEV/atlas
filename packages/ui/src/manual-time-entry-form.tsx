@@ -175,10 +175,13 @@ export function ManualTimeEntryForm({
 
         <div style={{ padding: "20px 24px" }}>
           <div style={{ marginBottom: "14px" }}>
-            <label style={LABEL_STYLE}>Task</label>
+            <label htmlFor="manual-time-task" style={LABEL_STYLE}>Task</label>
             <select
+              id="manual-time-task"
+              name="task_id"
               value={taskId}
               onChange={(e) => setTaskId(e.target.value)}
+              aria-label="Task"
               style={INPUT_STYLE}
             >
               <option value="">No task (general)</option>
@@ -199,32 +202,41 @@ export function ManualTimeEntryForm({
             }}
           >
             <div>
-              <label style={LABEL_STYLE}>Start *</label>
+              <label htmlFor="manual-time-start" style={LABEL_STYLE}>Start *</label>
               <input
+                id="manual-time-start"
+                name="started_at"
                 type="datetime-local"
                 value={startedAt}
                 onChange={(e) => setStartedAt(e.target.value)}
+                aria-label="Start time"
                 style={INPUT_STYLE}
               />
             </div>
             <div>
-              <label style={LABEL_STYLE}>End</label>
+              <label htmlFor="manual-time-end" style={LABEL_STYLE}>End</label>
               <input
+                id="manual-time-end"
+                name="ended_at"
                 type="datetime-local"
                 value={endedAt}
                 onChange={(e) => setEndedAt(e.target.value)}
+                aria-label="End time"
                 style={INPUT_STYLE}
               />
             </div>
           </div>
 
           <div>
-            <label style={LABEL_STYLE}>Notes</label>
+            <label htmlFor="manual-time-notes" style={LABEL_STYLE}>Notes</label>
             <textarea
+              id="manual-time-notes"
+              name="notes"
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
               placeholder="What did you work on?"
               rows={3}
+              aria-label="Notes"
               style={{
                 ...INPUT_STYLE,
                 minHeight: "80px",

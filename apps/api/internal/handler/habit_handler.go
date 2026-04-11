@@ -5,6 +5,7 @@ import (
 	"errors"
 	"net/http"
 	"strconv"
+	"time"
 
 	"github.com/go-chi/chi/v5"
 
@@ -27,6 +28,11 @@ func (h *HabitHandler) Routes() chi.Router {
 	r := chi.NewRouter()
 	r.Get("/", h.List)
 	r.Post("/", h.Create)
+	// Collection-level completions endpoint, used by the Today page to fetch
+	// ALL habit completions for a given date in a single request.
+	// Must be registered BEFORE the /{id} route so chi doesn't treat
+	// "completions" as a habit id.
+	r.Get("/completions", h.ListCompletionsByDate)
 	r.Route("/{id}", func(r chi.Router) {
 		r.Get("/", h.GetByID)
 		r.Put("/", h.Update)
@@ -212,5 +218,31 @@ func (h *HabitHandler) ListCompletions(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	respondJSON(w, http.StatusOK, completions)
+}
+
+// ListCompletionsByDate handles GET /api/v1/habits/completions?date=YYYY-MM-DD.
+// If `date` is omitted or "today", returns completions for the server's
+// current local day. This lets the Today page render "done today" state
+// with a single request.
+func (h *HabitHandler) ListCompletionsByDate(w http.ResponseWriter, r *http.Request) {
+	q := r.URL.Query().Get("date")
+	var date time.Time
+	if q == "" || q == "today" {
+		date = time.Now()
+	} else {
+		d, err := time.Parse("2006-01-02", q)
+		if err != nil {
+			respondError(w, http.StatusBadRequest, "invalid date format (expected YYYY-MM-DD)")
+			return
+		}
+		date = d
+	}
+
+	completions, err := h.store.ListCompletionsByDate(r.Context(), date)
+	if err != nil {
+		respondError(w, http.StatusInternalServerError, "failed to list completions")
+		return
+	}
 	respondJSON(w, http.StatusOK, completions)
 }

@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"strings"
+	"time"
 
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -217,6 +218,37 @@ func (s *PgHabitStore) ListCompletions(ctx context.Context, habitID int64, limit
 		LIMIT $2 OFFSET $3`, habitID, limit, offset)
 	if err != nil {
 		return nil, fmt.Errorf("list completions: %w", err)
+	}
+	defer rows.Close()
+
+	var completions []model.HabitCompletion
+	for rows.Next() {
+		var hc model.HabitCompletion
+		if err := rows.Scan(&hc.ID, &hc.HabitID, &hc.CompletedAt, &hc.Value, &hc.Notes); err != nil {
+			return nil, fmt.Errorf("scan completion: %w", err)
+		}
+		completions = append(completions, hc)
+	}
+	if completions == nil {
+		completions = []model.HabitCompletion{}
+	}
+	return completions, rows.Err()
+}
+
+// ListCompletionsByDate returns all habit completions that happened on the
+// same calendar day as the provided `date` (interpreted in the server's local
+// time zone). Used by the Today page to know which habits are already done.
+func (s *PgHabitStore) ListCompletionsByDate(ctx context.Context, date time.Time) ([]model.HabitCompletion, error) {
+	start := time.Date(date.Year(), date.Month(), date.Day(), 0, 0, 0, 0, date.Location())
+	end := start.Add(24 * time.Hour)
+
+	rows, err := s.pool.Query(ctx, `
+		SELECT id, habit_id, completed_at, value, notes
+		FROM habit_completions
+		WHERE completed_at >= $1 AND completed_at < $2
+		ORDER BY completed_at DESC`, start, end)
+	if err != nil {
+		return nil, fmt.Errorf("list completions by date: %w", err)
 	}
 	defer rows.Close()
 

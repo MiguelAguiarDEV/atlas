@@ -59,6 +59,17 @@ func (s *PgTaskStore) List(ctx context.Context, filter model.TaskFilter) (ListRe
 		args = append(args, *filter.DueTo)
 		argIdx++
 	}
+	if filter.TodayOnly {
+		now := time.Now()
+		start := time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, now.Location())
+		end := start.Add(24 * time.Hour)
+		where = append(where, fmt.Sprintf(
+			"((due_at >= $%d AND due_at < $%d) OR (started_at >= $%d AND started_at < $%d))",
+			argIdx, argIdx+1, argIdx+2, argIdx+3,
+		))
+		args = append(args, start, end, start, end)
+		argIdx += 4
+	}
 
 	whereClause := strings.Join(where, " AND ")
 

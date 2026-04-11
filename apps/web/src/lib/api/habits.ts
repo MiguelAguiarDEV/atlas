@@ -78,3 +78,17 @@ export async function listCompletions(
 ): Promise<ApiResponse<ApiHabitCompletion[]>> {
   return apiFetch<ApiHabitCompletion[]>(`/api/v1/habits/${id}/completions`);
 }
+
+/**
+ * List habit completions for a given date (default: today).
+ * Calls the collection-level `/api/v1/habits/completions?date=...` endpoint
+ * so the Today page can render "done today" state in a single fetch.
+ */
+export async function listCompletionsForDate(
+  date?: string,
+): Promise<ApiResponse<ApiHabitCompletion[]>> {
+  const q = date ?? "today";
+  return apiFetch<ApiHabitCompletion[]>(
+    `/api/v1/habits/completions?date=${encodeURIComponent(q)}`,
+  );
+}

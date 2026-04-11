@@ -208,17 +208,18 @@ export default function ProjectDetailPage() {
   const totalTasks = tasks.length;
   const doneTasks = tasks.filter((t) => t.status === "done").length;
   const inProgressTasks = tasks.filter((t) => t.status === "in_progress").length;
-  const overdueTasks = 0; // Would need due_at comparison; kept for future
+  const cancelledTasks = tasks.filter((t) => t.status === "cancelled").length;
   const percent = totalTasks > 0 ? Math.round((doneTasks / totalTasks) * 100) : 0;
 
   const statusGroups = groupByStatus(tasks);
 
-  // Stats bar
+  // Stats bar — includes explicit Cancelled breakdown so users can see why
+  // "Total" may not equal "Done + In Progress".
   const statItems = [
     { label: "Total", value: totalTasks, color: "var(--text-primary)" },
     { label: "Done", value: doneTasks, color: "var(--success)" },
     { label: "In Progress", value: inProgressTasks, color: "var(--warning)" },
-    { label: "Overdue", value: overdueTasks, color: "var(--destructive)" },
+    { label: "Cancelled", value: cancelledTasks, color: "var(--text-tertiary)" },
   ];
 
   // View toggle
@@ -482,16 +483,22 @@ export default function ProjectDetailPage() {
       {totalTasks > 0 && (
         <div className="animate-fade-in-up" style={{ paddingBottom: "24px" }}>
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "6px" }}>
-            <span style={{ fontSize: "12px", fontWeight: 500, color: "var(--text-secondary)" }}>Progress</span>
+            <span id={`project-${project.id}-progress-label`} style={{ fontSize: "12px", fontWeight: 500, color: "var(--text-secondary)" }}>Progress</span>
             <span style={{ fontSize: "12px", fontWeight: 600, color: color, fontVariantNumeric: "tabular-nums" }}>{percent}%</span>
           </div>
-          <div style={{
-            width: "100%",
-            height: "6px",
-            borderRadius: "9999px",
-            background: "rgba(255,255,255,0.06)",
-            overflow: "hidden",
-          }}>
+          <div
+            role="progressbar"
+            aria-valuenow={percent}
+            aria-valuemin={0}
+            aria-valuemax={100}
+            aria-labelledby={`project-${project.id}-progress-label`}
+            style={{
+              width: "100%",
+              height: "6px",
+              borderRadius: "9999px",
+              background: "rgba(255,255,255,0.06)",
+              overflow: "hidden",
+            }}>
             <div style={{
               width: `${percent}%`,
               height: "100%",

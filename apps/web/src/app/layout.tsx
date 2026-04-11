@@ -39,7 +39,10 @@ export default function RootLayout({
           rel="stylesheet"
         />
       </head>
-      <body className="min-h-dvh bg-[var(--bg-base)] text-[var(--foreground)]">
+      <body
+        className="min-h-dvh bg-[var(--bg-base)] text-[var(--foreground)]"
+        style={{ overflowX: "hidden" }}
+      >
         {children}
       </body>
     </html>

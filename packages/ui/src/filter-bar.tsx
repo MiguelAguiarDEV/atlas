@@ -153,7 +153,11 @@ function Dropdown({
   return (
     <div ref={ref} style={{ position: "relative" }}>
       <button
+        type="button"
         onClick={() => setOpen(!open)}
+        aria-haspopup="menu"
+        aria-expanded={open}
+        aria-label={`${label} filter`}
         style={{
           display: "flex",
           alignItems: "center",
@@ -182,6 +186,8 @@ function Dropdown({
       </button>
       {open && (
         <div
+          role="menu"
+          aria-label={label}
           style={{
             position: "absolute",
             top: "calc(100% + 4px)",
@@ -200,6 +206,9 @@ function Dropdown({
           {options.map((opt) => (
             <button
               key={opt.value}
+              type="button"
+              role="menuitem"
+              aria-checked={value === opt.value}
               onClick={() => {
                 onChange(opt.value);
                 setOpen(false);

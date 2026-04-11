@@ -3,6 +3,7 @@ package store
 import (
 	"context"
 	"errors"
+	"time"
 
 	"github.com/MiguelAguiarDEV/atlas/apps/api/internal/model"
 )
@@ -62,4 +63,5 @@ type HabitStore interface {
 	Delete(ctx context.Context, id int64) error
 	Complete(ctx context.Context, habitID int64, input model.CreateHabitCompletionInput) (model.HabitCompletion, error)
 	ListCompletions(ctx context.Context, habitID int64, limit, offset int) ([]model.HabitCompletion, error)
+	ListCompletionsByDate(ctx context.Context, date time.Time) ([]model.HabitCompletion, error)
 }

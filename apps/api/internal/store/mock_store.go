@@ -31,6 +31,13 @@ func (m *MockTaskStore) List(ctx context.Context, filter model.TaskFilter) (List
 	m.mu.RLock()
 	defer m.mu.RUnlock()
 
+	var todayStart, todayEnd time.Time
+	if filter.TodayOnly {
+		now := time.Now()
+		todayStart = time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, now.Location())
+		todayEnd = todayStart.Add(24 * time.Hour)
+	}
+
 	var items []model.Task
 	for _, t := range m.tasks {
 		if filter.Status != nil && t.Status != *filter.Status {
@@ -41,6 +48,13 @@ func (m *MockTaskStore) List(ctx context.Context, filter model.TaskFilter) (List
 		}
 		if filter.Priority != nil && t.Priority != *filter.Priority {
 			continue
+		}
+		if filter.TodayOnly {
+			inDue := t.DueAt != nil && !t.DueAt.Before(todayStart) && t.DueAt.Before(todayEnd)
+			inStarted := t.StartedAt != nil && !t.StartedAt.Before(todayStart) && t.StartedAt.Before(todayEnd)
+			if !inDue && !inStarted {
+				continue
+			}
 		}
 		items = append(items, t)
 	}
@@ -790,4 +804,25 @@ func (m *MockHabitStore) ListCompletions(ctx context.Context, habitID int64, lim
 		completions = []model.HabitCompletion{}
 	}
 	return completions, nil
+}
+
+func (m *MockHabitStore) ListCompletionsByDate(ctx context.Context, date time.Time) ([]model.HabitCompletion, error) {
+	m.mu.RLock()
+	defer m.mu.RUnlock()
+
+	start := time.Date(date.Year(), date.Month(), date.Day(), 0, 0, 0, 0, date.Location())
+	end := start.Add(24 * time.Hour)
+
+	var out []model.HabitCompletion
+	for _, list := range m.completions {
+		for _, hc := range list {
+			if (hc.CompletedAt.Equal(start) || hc.CompletedAt.After(start)) && hc.CompletedAt.Before(end) {
+				out = append(out, hc)
+			}
+		}
+	}
+	if out == nil {
+		out = []model.HabitCompletion{}
+	}
+	return out, nil
 }

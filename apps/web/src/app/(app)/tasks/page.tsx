@@ -195,8 +195,15 @@ export default function TasksPage() {
   const filtered = applyFilters(tasks, filters);
 
   const containerStyle: React.CSSProperties = isDesktop
-    ? {}
-    : { padding: "24px 20px 120px 20px", maxWidth: "512px", margin: "0 auto" };
+    ? { overflowX: "hidden" }
+    : {
+        padding: "24px 20px 120px 20px",
+        maxWidth: "512px",
+        margin: "0 auto",
+        // Prevent mobile horizontal scroll — pill rows can otherwise
+        // overflow by a few pixels and break the layout rule.
+        overflowX: "hidden",
+      };
 
   // Loading state
   if (loading) {

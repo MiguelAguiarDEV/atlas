@@ -11,6 +11,7 @@ import {
   MenuIcon,
   BoardIcon,
   FolderIcon,
+  RepeatIcon,
   useIsDesktop,
   useMounted,
   type SidebarItem,
@@ -31,6 +32,7 @@ const navItems: SidebarItem[] = [
   { key: "tasks", label: "Tasks", icon: <ListIcon size={20} />, href: "/tasks" },
   { key: "board", label: "Board", icon: <BoardIcon size={20} />, href: "/tasks/board" },
   { key: "projects", label: "Projects", icon: <FolderIcon size={20} />, href: "/projects" },
+  { key: "habits", label: "Habits", icon: <RepeatIcon size={20} />, href: "/habits" },
   { key: "timer", label: "Timer", icon: <ClockIcon size={20} />, href: "/timer" },
   { key: "more", label: "More", icon: <MenuIcon size={20} />, href: "/more" },
 ];
@@ -40,6 +42,7 @@ function getActiveTab(pathname: string): string {
   if (pathname === "/tasks/board") return "board";
   if (pathname.startsWith("/tasks")) return "tasks";
   if (pathname.startsWith("/projects")) return "projects";
+  if (pathname.startsWith("/habits")) return "habits";
   if (pathname.startsWith("/timer")) return "timer";
   if (pathname.startsWith("/more")) return "more";
   return "today";

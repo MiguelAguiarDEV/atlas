@@ -404,13 +404,19 @@ export default function ProjectsPage() {
 
           {/* Progress bar */}
           {stats.total > 0 && (
-            <div style={{
-              width: "100%",
-              height: "4px",
-              borderRadius: "9999px",
-              background: "rgba(255,255,255,0.06)",
-              overflow: "hidden",
-            }}>
+            <div
+              role="progressbar"
+              aria-valuenow={stats.percent}
+              aria-valuemin={0}
+              aria-valuemax={100}
+              aria-label={`${project.name} progress: ${stats.percent}%`}
+              style={{
+                width: "100%",
+                height: "4px",
+                borderRadius: "9999px",
+                background: "rgba(255,255,255,0.06)",
+                overflow: "hidden",
+              }}>
               <div style={{
                 width: `${stats.percent}%`,
                 height: "100%",

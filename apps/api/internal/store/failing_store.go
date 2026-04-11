@@ -3,6 +3,7 @@ package store
 import (
 	"context"
 	"errors"
+	"time"
 
 	"github.com/MiguelAguiarDEV/atlas/apps/api/internal/model"
 )
@@ -100,5 +101,8 @@ func (f FailingHabitStore) Complete(ctx context.Context, habitID int64, input mo
 	return model.HabitCompletion{}, errInternal
 }
 func (f FailingHabitStore) ListCompletions(ctx context.Context, habitID int64, limit, offset int) ([]model.HabitCompletion, error) {
+	return nil, errInternal
+}
+func (f FailingHabitStore) ListCompletionsByDate(ctx context.Context, date time.Time) ([]model.HabitCompletion, error) {
 	return nil, errInternal
 }

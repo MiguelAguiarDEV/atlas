@@ -77,6 +77,9 @@ func (h *TaskHandler) List(w http.ResponseWriter, r *http.Request) {
 		}
 		filter.DueTo = &t
 	}
+	if v := r.URL.Query().Get("today"); v == "true" || v == "1" {
+		filter.TodayOnly = true
+	}
 	if v := r.URL.Query().Get("limit"); v != "" {
 		n, err := strconv.Atoi(v)
 		if err != nil || n < 1 {

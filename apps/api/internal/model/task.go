@@ -95,6 +95,10 @@ type TaskFilter struct {
 	Search    *string
 	DueFrom   *time.Time
 	DueTo     *time.Time
+	// TodayOnly restricts results to tasks whose due_at OR started_at falls
+	// within the server's local "today" window. Used by the Today page to
+	// fetch a single scoped list instead of filtering client-side.
+	TodayOnly bool
 	Limit     int
 	Offset    int
 }

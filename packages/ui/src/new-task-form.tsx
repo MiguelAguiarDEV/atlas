@@ -212,13 +212,16 @@ export function NewTaskForm({
           }}
         >
           <div style={{ marginBottom: "14px" }}>
-            <label style={LABEL_STYLE}>Title *</label>
+            <label htmlFor="new-task-title" style={LABEL_STYLE}>Title *</label>
             <input
+              id="new-task-title"
+              name="title"
               type="text"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
               placeholder="What needs doing?"
               autoFocus
+              aria-label="Task title"
               style={INPUT_STYLE}
               onKeyDown={(e) => {
                 if (e.key === "Enter" && (e.metaKey || e.ctrlKey))
@@ -228,12 +231,15 @@ export function NewTaskForm({
           </div>
 
           <div style={{ marginBottom: "14px" }}>
-            <label style={LABEL_STYLE}>Description</label>
+            <label htmlFor="new-task-description" style={LABEL_STYLE}>Description</label>
             <textarea
+              id="new-task-description"
+              name="description"
               value={description}
               onChange={(e) => setDescription(e.target.value)}
               placeholder="Add more details..."
               rows={3}
+              aria-label="Task description"
               style={{
                 ...INPUT_STYLE,
                 minHeight: "80px",
@@ -252,10 +258,13 @@ export function NewTaskForm({
             }}
           >
             <div>
-              <label style={LABEL_STYLE}>Project</label>
+              <label htmlFor="new-task-project" style={LABEL_STYLE}>Project</label>
               <select
+                id="new-task-project"
+                name="project_id"
                 value={projectId}
                 onChange={(e) => setProjectId(e.target.value)}
+                aria-label="Project"
                 style={INPUT_STYLE}
               >
                 <option value="">No project</option>
@@ -267,10 +276,13 @@ export function NewTaskForm({
               </select>
             </div>
             <div>
-              <label style={LABEL_STYLE}>Priority</label>
+              <label htmlFor="new-task-priority" style={LABEL_STYLE}>Priority</label>
               <select
+                id="new-task-priority"
+                name="priority"
                 value={priority}
                 onChange={(e) => setPriority(e.target.value)}
+                aria-label="Priority"
                 style={INPUT_STYLE}
               >
                 {PRIORITY_OPTIONS.map((p) => (
@@ -291,10 +303,13 @@ export function NewTaskForm({
             }}
           >
             <div>
-              <label style={LABEL_STYLE}>Status</label>
+              <label htmlFor="new-task-status" style={LABEL_STYLE}>Status</label>
               <select
+                id="new-task-status"
+                name="status"
                 value={status}
                 onChange={(e) => setStatus(e.target.value)}
+                aria-label="Status"
                 style={INPUT_STYLE}
               >
                 {STATUS_OPTIONS.map((s) => (
@@ -305,10 +320,13 @@ export function NewTaskForm({
               </select>
             </div>
             <div>
-              <label style={LABEL_STYLE}>Energy</label>
+              <label htmlFor="new-task-energy" style={LABEL_STYLE}>Energy</label>
               <select
+                id="new-task-energy"
+                name="energy"
                 value={energy}
                 onChange={(e) => setEnergy(e.target.value)}
+                aria-label="Energy"
                 style={INPUT_STYLE}
               >
                 {ENERGY_OPTIONS.map((e) => (
@@ -329,21 +347,27 @@ export function NewTaskForm({
             }}
           >
             <div>
-              <label style={LABEL_STYLE}>Estimated (minutes)</label>
+              <label htmlFor="new-task-estimated" style={LABEL_STYLE}>Estimated (minutes)</label>
               <input
+                id="new-task-estimated"
+                name="estimated_mins"
                 type="number"
                 min="0"
                 value={estimatedMins}
                 onChange={(e) => setEstimatedMins(e.target.value)}
                 placeholder="e.g. 30"
+                aria-label="Estimated minutes"
                 style={INPUT_STYLE}
               />
             </div>
             <div>
-              <label style={LABEL_STYLE}>Type</label>
+              <label htmlFor="new-task-type" style={LABEL_STYLE}>Type</label>
               <select
+                id="new-task-type"
+                name="task_type"
                 value={taskType}
                 onChange={(e) => setTaskType(e.target.value)}
+                aria-label="Task type"
                 style={INPUT_STYLE}
               >
                 {TASK_TYPE_OPTIONS.map((t) => (
@@ -356,22 +380,28 @@ export function NewTaskForm({
           </div>
 
           <div style={{ marginBottom: "14px" }}>
-            <label style={LABEL_STYLE}>Due date</label>
+            <label htmlFor="new-task-due" style={LABEL_STYLE}>Due date</label>
             <input
+              id="new-task-due"
+              name="due_at"
               type="datetime-local"
               value={dueAt}
               onChange={(e) => setDueAt(e.target.value)}
+              aria-label="Due date"
               style={INPUT_STYLE}
             />
           </div>
 
           <div style={{ marginBottom: "4px" }}>
-            <label style={LABEL_STYLE}>Tags (comma-separated)</label>
+            <label htmlFor="new-task-tags" style={LABEL_STYLE}>Tags (comma-separated)</label>
             <input
+              id="new-task-tags"
+              name="tags"
               type="text"
               value={tags}
               onChange={(e) => setTags(e.target.value)}
               placeholder="deep-work, home, phone"
+              aria-label="Tags"
               style={INPUT_STYLE}
             />
           </div>

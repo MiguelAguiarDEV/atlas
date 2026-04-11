@@ -135,23 +135,29 @@ export function EditProjectForm({
 
         <div style={{ padding: "20px 24px" }}>
           <div style={{ marginBottom: "14px" }}>
-            <label style={LABEL_STYLE}>Name *</label>
+            <label htmlFor="edit-project-name" style={LABEL_STYLE}>Name *</label>
             <input
+              id="edit-project-name"
+              name="name"
               type="text"
               value={name}
               onChange={(e) => setName(e.target.value)}
               autoFocus
+              aria-label="Project name"
               style={INPUT_STYLE}
             />
           </div>
 
           <div style={{ marginBottom: "14px" }}>
-            <label style={LABEL_STYLE}>Description</label>
+            <label htmlFor="edit-project-description" style={LABEL_STYLE}>Description</label>
             <textarea
+              id="edit-project-description"
+              name="description"
               value={description}
               onChange={(e) => setDescription(e.target.value)}
               placeholder="Describe the project..."
               rows={3}
+              aria-label="Project description"
               style={{
                 ...INPUT_STYLE,
                 minHeight: "80px",
