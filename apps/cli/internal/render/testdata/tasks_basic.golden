@@ -1,0 +1,4 @@
+id   | status      | pri    | due          | title
+--------------------------------------------------------------------------------
+1    | open        | high   | 2026-04-14T… | Short
+2    | in_progress | med    | -            | A very long title that should get …
