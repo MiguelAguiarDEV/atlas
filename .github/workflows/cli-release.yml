@@ -34,6 +34,16 @@ jobs:
         with:
           go-version: "1.23"
 
+      - name: Derive semver tag
+        id: semver
+        shell: bash
+        run: |
+          raw="${{ github.event.inputs.ref || github.ref_name }}"
+          # Strip leading cli- so goreleaser parses it as semver.
+          semver="${raw#cli-}"
+          echo "tag=$semver" >> "$GITHUB_OUTPUT"
+          echo "Using semver tag: $semver"
+
       - name: Run GoReleaser
         uses: goreleaser/goreleaser-action@v6
         with:
@@ -42,3 +52,4 @@ jobs:
           args: release --clean
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GORELEASER_CURRENT_TAG: ${{ steps.semver.outputs.tag }}
