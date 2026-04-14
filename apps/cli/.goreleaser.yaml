@@ -2,6 +2,12 @@ version: 2
 
 project_name: atlas-cli
 
+# Monorepo layout: release-please produces tags like `cli-v1.0.0`. Strip the
+# `cli-` prefix so goreleaser parses `v1.0.0` as semver.
+monorepo:
+  tag_prefix: cli-
+  dir: apps/cli
+
 before:
   hooks:
     - go mod tidy
