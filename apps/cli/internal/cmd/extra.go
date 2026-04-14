@@ -15,6 +15,13 @@ func addOptional(root *cobra.Command, cmds ...*cobra.Command) {
 }
 
 // extraCommands returns the list of subcommands (time, projects, habits,
-// config, status) introduced in the group-5 commit. This placeholder is
-// overridden in extra_wire.go when those subcommands land.
-func extraCommands() []*cobra.Command { return nil }
+// config, status) added in the group-5 commit.
+func extraCommands() []*cobra.Command {
+	return []*cobra.Command{
+		newTimeCmd(),
+		newProjectCmd(),
+		newHabitCmd(),
+		newConfigCmd(),
+		newStatusCmd(),
+	}
+}
