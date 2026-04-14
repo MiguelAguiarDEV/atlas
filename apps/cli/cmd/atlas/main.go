@@ -2,29 +2,42 @@
 package main
 
 import (
+	"context"
+	"errors"
 	"fmt"
 	"os"
+	"os/signal"
+	"syscall"
 
-	"github.com/spf13/cobra"
+	"github.com/MiguelAguiarDEV/atlas/apps/cli/internal/cmd"
+	clierr "github.com/MiguelAguiarDEV/atlas/apps/cli/internal/errors"
 )
 
 // version is overridden at build time via -ldflags.
 var version = "dev"
 
 func main() {
-	root := &cobra.Command{
-		Use:           "atlas",
-		Short:         "atlas CLI — fast command-line access to the atlas API",
-		SilenceUsage:  true,
-		SilenceErrors: true,
-		Version:       version,
-		RunE: func(cmd *cobra.Command, args []string) error {
-			return cmd.Help()
-		},
-	}
+	ctx, cancel := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
+	defer cancel()
 
-	if err := root.Execute(); err != nil {
-		fmt.Fprintln(os.Stderr, "error:", err)
-		os.Exit(1)
+	root := cmd.NewRootCmd(version)
+	root.SetContext(ctx)
+
+	if err := root.ExecuteContext(ctx); err != nil {
+		// SilenceErrors is set, so cobra did not print; we do.
+		code := clierr.Code(err)
+		if code != clierr.ExitOK {
+			// For --json mode we also emit a structured error on stderr.
+			if jsonFlag, ferr := root.PersistentFlags().GetBool("json"); ferr == nil && jsonFlag {
+				_, _ = fmt.Fprintf(os.Stderr, `{"data":null,"error":%q}`+"\n", err.Error())
+			} else {
+				_, _ = fmt.Fprintln(os.Stderr, "error:", err.Error())
+			}
+		}
+		// Ensure cancelled contexts don't emit a noisy "context canceled".
+		if errors.Is(err, context.Canceled) {
+			os.Exit(clierr.ExitNetErr)
+		}
+		os.Exit(code)
 	}
 }
