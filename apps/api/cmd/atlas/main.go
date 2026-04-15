@@ -12,6 +12,7 @@ import (
 
 	"github.com/MiguelAguiarDEV/atlas/apps/api/internal/db"
 	"github.com/MiguelAguiarDEV/atlas/apps/api/internal/handler"
+	atlasmw "github.com/MiguelAguiarDEV/atlas/apps/api/internal/middleware"
 	"github.com/MiguelAguiarDEV/atlas/apps/api/internal/store"
 )
 
@@ -71,6 +72,16 @@ func main() {
 	r.Use(corsMiddleware)
 	r.Use(middleware.Heartbeat("/health"))
 	r.Use(handler.JSONContentType)
+
+	// Optional bearer-token auth: enabled when ATLAS_API_TOKEN is set.
+	// When unset the API is unauthenticated (default, relies on
+	// Tailscale / network-level access control) — backward compatible.
+	if authToken := os.Getenv("ATLAS_API_TOKEN"); authToken != "" {
+		r.Use(atlasmw.BearerAuth(authToken))
+		slog.Info("bearer auth enabled")
+	} else {
+		slog.Info("bearer auth DISABLED — set ATLAS_API_TOKEN to enable")
+	}
 
 	r.Get("/api/v1/status", func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
