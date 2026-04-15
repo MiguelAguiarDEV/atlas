@@ -23,5 +23,6 @@ func extraCommands() []*cobra.Command {
 		newHabitCmd(),
 		newConfigCmd(),
 		newStatusCmd(),
+		newSyncCmd(),
 	}
 }

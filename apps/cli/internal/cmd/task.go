@@ -11,11 +11,25 @@ import (
 
 	"github.com/spf13/cobra"
 
+	"github.com/MiguelAguiarDEV/atlas/apps/cli/internal/cache"
 	"github.com/MiguelAguiarDEV/atlas/apps/cli/internal/client"
 	clierr "github.com/MiguelAguiarDEV/atlas/apps/cli/internal/errors"
 	"github.com/MiguelAguiarDEV/atlas/apps/cli/internal/model"
 	"github.com/MiguelAguiarDEV/atlas/apps/cli/internal/render"
 )
+
+// useOffline reports whether this invocation should skip the network and read
+// from / enqueue into the cache. Returns false if no cache is attached.
+func useOffline(c *Context, ctx context.Context) bool {
+	if c.Cache == nil {
+		return false
+	}
+	if c.Offline {
+		return true
+	}
+	// Auto-detect: quick ping with a short timeout.
+	return !cache.NearestReachable(ctx, c.Client, 2*time.Second)
+}
 
 func newTaskCmd() *cobra.Command {
 	cmd := &cobra.Command{
@@ -69,16 +83,37 @@ func newTasksListCmd() *cobra.Command {
 			}
 
 			ctx := cmd.Context()
+
+			// Offline path: read from cache only.
+			if useOffline(c, ctx) {
+				cf := cache.TaskFilter{
+					Status: filter.Status, Priority: filter.Priority,
+					ProjectID: filter.ProjectID, Search: filter.Search,
+					Limit: filter.Limit, Offset: filter.Offset,
+				}
+				tasks, err := c.Cache.ListTasks(cf)
+				if err != nil {
+					return err
+				}
+				return printTasks(cmd, c, tasks, nil)
+			}
+
 			if c.All {
 				tasks, err := c.Client.ListAllTasks(ctx, filter)
 				if err != nil {
 					return err
+				}
+				if c.Cache != nil {
+					_ = c.Cache.PutTasks(tasks, true)
 				}
 				return printTasks(cmd, c, tasks, nil)
 			}
 			tasks, meta, err := c.Client.ListTasks(ctx, filter)
 			if err != nil {
 				return err
+			}
+			if c.Cache != nil {
+				_ = c.Cache.PutTasks(tasks, true)
 			}
 			return printTasks(cmd, c, tasks, meta)
 		},
@@ -156,9 +191,24 @@ func newTasksAddCmd() *cobra.Command {
 				input.DueAt = &s
 			}
 
-			task, err := c.Client.CreateTask(cmd.Context(), input)
+			ctx := cmd.Context()
+			if useOffline(c, ctx) {
+				localID, err := c.Cache.EnqueueTaskCreate(input)
+				if err != nil {
+					return err
+				}
+				t, err := c.Cache.GetTask(localID)
+				if err != nil {
+					return err
+				}
+				return printTask(cmd, c, &t)
+			}
+			task, err := c.Client.CreateTask(ctx, input)
 			if err != nil {
 				return err
+			}
+			if c.Cache != nil {
+				_ = c.Cache.PutTasks([]model.Task{*task}, true)
 			}
 			return printTask(cmd, c, task)
 		},
@@ -241,9 +291,23 @@ func newTasksEditCmd() *cobra.Command {
 				s := render.RFC3339UTC(t)
 				input.DueAt = &s
 			}
-			task, err := c.Client.UpdateTask(cmd.Context(), id, input)
+			ctx := cmd.Context()
+			if useOffline(c, ctx) {
+				if err := c.Cache.EnqueueTaskUpdate(id, input); err != nil {
+					return err
+				}
+				t, err := c.Cache.GetTask(id)
+				if err != nil {
+					return err
+				}
+				return printTask(cmd, c, &t)
+			}
+			task, err := c.Client.UpdateTask(ctx, id, input)
 			if err != nil {
 				return err
+			}
+			if c.Cache != nil {
+				_ = c.Cache.PutTasks([]model.Task{*task}, true)
 			}
 			return printTask(cmd, c, task)
 		},
@@ -276,11 +340,24 @@ func newTasksDoneCmd() *cobra.Command {
 			}
 			status := "done"
 			now := render.RFC3339UTC(time.Now())
-			task, err := c.Client.UpdateTask(cmd.Context(), id, model.UpdateTaskInput{
-				Status: &status, CompletedAt: &now,
-			})
+			input := model.UpdateTaskInput{Status: &status, CompletedAt: &now}
+			ctx := cmd.Context()
+			if useOffline(c, ctx) {
+				if err := c.Cache.EnqueueTaskUpdate(id, input); err != nil {
+					return err
+				}
+				t, err := c.Cache.GetTask(id)
+				if err != nil {
+					return err
+				}
+				return printTask(cmd, c, &t)
+			}
+			task, err := c.Client.UpdateTask(ctx, id, input)
 			if err != nil {
 				return err
+			}
+			if c.Cache != nil {
+				_ = c.Cache.PutTasks([]model.Task{*task}, true)
 			}
 			return printTask(cmd, c, task)
 		},
@@ -300,6 +377,16 @@ func newTasksStartCmd() *cobra.Command {
 			}
 			ctx := cmd.Context()
 			status := "in_progress"
+			if useOffline(c, ctx) {
+				if err := c.Cache.EnqueueTaskUpdate(id, model.UpdateTaskInput{Status: &status}); err != nil {
+					return err
+				}
+				if err := c.Cache.EnqueueTimerStart(id); err != nil {
+					return err
+				}
+				fmt.Fprintf(cmd.OutOrStdout(), "queued: task %d set in_progress, timer start pending\n", id)
+				return nil
+			}
 			if _, err := c.Client.UpdateTask(ctx, id, model.UpdateTaskInput{Status: &status}); err != nil {
 				fmt.Fprintln(cmd.ErrOrStderr(), "step 1 failed: update status")
 				return err
@@ -308,6 +395,9 @@ func newTasksStartCmd() *cobra.Command {
 			if err != nil {
 				fmt.Fprintln(cmd.ErrOrStderr(), "step 2 failed: start timer")
 				return err
+			}
+			if c.Cache != nil {
+				_ = c.Cache.PutTimeEntries([]model.TimeEntry{*entry}, true)
 			}
 			return printTimeEntry(cmd, c, entry)
 		},
@@ -337,8 +427,19 @@ func newTasksRmCmd() *cobra.Command {
 					return nil
 				}
 			}
-			if err := c.Client.DeleteTask(cmd.Context(), id); err != nil {
+			ctx := cmd.Context()
+			if useOffline(c, ctx) {
+				if err := c.Cache.EnqueueTaskDelete(id); err != nil {
+					return err
+				}
+				fmt.Fprintf(cmd.OutOrStdout(), "queued delete of task %d\n", id)
+				return nil
+			}
+			if err := c.Client.DeleteTask(ctx, id); err != nil {
 				return err
+			}
+			if c.Cache != nil {
+				_ = c.Cache.DeleteTask(id)
 			}
 			fmt.Fprintf(cmd.OutOrStdout(), "deleted task %d\n", id)
 			return nil

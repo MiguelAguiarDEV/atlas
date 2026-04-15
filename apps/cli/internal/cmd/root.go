@@ -10,6 +10,7 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 
+	"github.com/MiguelAguiarDEV/atlas/apps/cli/internal/cache"
 	"github.com/MiguelAguiarDEV/atlas/apps/cli/internal/client"
 	"github.com/MiguelAguiarDEV/atlas/apps/cli/internal/config"
 	clierr "github.com/MiguelAguiarDEV/atlas/apps/cli/internal/errors"
@@ -18,12 +19,15 @@ import (
 
 // Context bundles everything a command handler needs.
 type Context struct {
-	Viper  *viper.Viper
-	Config *config.Config
-	Client *client.Client
-	Mode   render.Mode // table vs json
-	JSON   bool
-	All    bool // --all pagination
+	Viper   *viper.Viper
+	Config  *config.Config
+	Client  *client.Client
+	Cache   *cache.Cache // may be nil when --no-cache is set
+	Mode    render.Mode  // table vs json
+	JSON    bool
+	All     bool // --all pagination
+	Offline bool // --offline or auto-detected
+	NoCache bool // --no-cache skips cache entirely (v1.0 behavior)
 }
 
 // key is a private context key type.
@@ -72,6 +76,8 @@ func NewRootCmd(version string) *cobra.Command {
 	root.PersistentFlags().Duration("timeout", config.DefaultTimeout, "HTTP request timeout (Go duration, e.g. 30s)")
 	root.PersistentFlags().String("config", "", "path to config file (default: ~/.config/atlas/config.toml)")
 	root.PersistentFlags().Bool("all", false, "auto-paginate until all items are fetched")
+	root.PersistentFlags().Bool("offline", false, "force offline mode (read cache, enqueue writes)")
+	root.PersistentFlags().Bool("no-cache", false, "bypass the local cache entirely (pre-v0.2 behavior)")
 
 	// Bind viper for each persistent flag so --flag > env > file > default all converge.
 	_ = v.BindPFlag("server", root.PersistentFlags().Lookup("server"))
@@ -132,6 +138,8 @@ func initContext(cmd *cobra.Command, v *viper.Viper) error {
 
 	jsonFlag, _ := cmd.Flags().GetBool("json")
 	allFlag, _ := cmd.Flags().GetBool("all")
+	offlineFlag, _ := cmd.Flags().GetBool("offline")
+	noCacheFlag, _ := cmd.Flags().GetBool("no-cache")
 
 	c := client.New(client.Options{
 		Base:    server,
@@ -141,12 +149,25 @@ func initContext(cmd *cobra.Command, v *viper.Viper) error {
 	})
 
 	ctx := &Context{
-		Viper:  v,
-		Config: cfg,
-		Client: c,
-		Mode:   render.FromFlag(jsonFlag),
-		JSON:   jsonFlag,
-		All:    allFlag,
+		Viper:   v,
+		Config:  cfg,
+		Client:  c,
+		Mode:    render.FromFlag(jsonFlag),
+		JSON:    jsonFlag,
+		All:     allFlag,
+		Offline: offlineFlag,
+		NoCache: noCacheFlag,
+	}
+
+	// Open the cache unless the user opted out with --no-cache.
+	if !noCacheFlag {
+		ch, err := cache.Open(cache.DefaultPath())
+		if err != nil {
+			// Cache failures are non-fatal: warn and continue in pre-v0.2 mode.
+			fmt.Fprintf(cmd.ErrOrStderr(), "[atlas] warning: cache unavailable: %v\n", err)
+		} else {
+			ctx.Cache = ch
+		}
 	}
 
 	cmd.SetContext(WithCLI(cmd.Context(), ctx))
