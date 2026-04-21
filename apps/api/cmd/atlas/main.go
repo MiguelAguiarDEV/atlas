@@ -6,6 +6,7 @@ import (
 	"log/slog"
 	"net/http"
 	"os"
+	"strings"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
@@ -17,12 +18,33 @@ import (
 )
 
 
+// allowedOrigins for CORS. Env CORS_ORIGINS can override (comma-separated).
+var defaultAllowedOrigins = []string{
+	"https://atlas.miguelaguiar.dev",
+	"http://localhost:3000",
+	"http://100.71.66.54:3000",
+}
+
 func corsMiddleware(next http.Handler) http.Handler {
+	origins := defaultAllowedOrigins
+	if env := os.Getenv("CORS_ORIGINS"); env != "" {
+		origins = strings.Split(env, ",")
+	}
+	allowed := make(map[string]bool, len(origins))
+	for _, o := range origins {
+		allowed[strings.TrimSpace(o)] = true
+	}
+
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Set("Access-Control-Allow-Origin", "*")
+		origin := r.Header.Get("Origin")
+		if allowed[origin] {
+			w.Header().Set("Access-Control-Allow-Origin", origin)
+			w.Header().Set("Access-Control-Allow-Credentials", "true")
+		}
 		w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, PATCH, DELETE, OPTIONS")
-		w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization")
-		w.Header().Set("Access-Control-Max-Age", "86400")
+		w.Header().Set("Access-Control-Allow-Headers", "Accept, Authorization, Content-Type")
+		w.Header().Set("Access-Control-Expose-Headers", "Link")
+		w.Header().Set("Access-Control-Max-Age", "300")
 		if r.Method == http.MethodOptions {
 			w.WriteHeader(http.StatusNoContent)
 			return
